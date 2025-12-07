@@ -1,0 +1,1581 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>构造原理酒店游戏</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a237e 0%, #4a148c 100%);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1400px;
+            width: 100%;
+            margin: 0 auto;
+            position: relative;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #ffd700;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            color: #bbbbff;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.5;
+        }
+        
+        .top-controls {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        .controls-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+        
+        .rules-panel {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+        }
+        
+        .rules-panel h3 {
+            color: #ffd700;
+            margin-bottom: 10px;
+        }
+        
+        .rules-panel ul {
+            padding-left: 20px;
+            line-height: 1.5;
+            font-size: 0.9rem;
+        }
+        
+        .rules-panel li {
+            margin-bottom: 5px;
+        }
+        
+        .controls-right {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .info-box {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+        }
+        
+        .info-box h4 {
+            color: #ffd700;
+            margin-bottom: 8px;
+        }
+        
+        .counter {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #ffd700;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 5px;
+        }
+        
+        .btn-check {
+            background: linear-gradient(to right, #4caf50, #2e7d32);
+            color: white;
+            width: 100%;
+        }
+        
+        .btn-check:hover {
+            background: linear-gradient(to right, #66bb6a, #388e3c);
+            transform: translateY(-2px);
+        }
+        
+        .btn-reset {
+            background: linear-gradient(to right, #f44336, #c62828);
+            color: white;
+            width: 100%;
+        }
+        
+        .btn-reset:hover {
+            background: linear-gradient(to right, #ef5350, #d32f2f);
+            transform: translateY(-2px);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        
+        .info-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .info-box .room-order {
+            color: #bbbbff;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+        
+        .info-box .room-themes {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            color: #bbbbff;
+            font-size: 0.9rem;
+        }
+        
+        .hotel-section {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+            margin-bottom: 20px;
+            min-height: 500px;
+            position: relative;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            color: #ffd700;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .hotel {
+            position: relative;
+            width: 100%;
+            min-height: 400px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-right: 10px;
+        }
+        
+        /* 固定小人区域 */
+        .guest-fixed-area {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 15px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+        }
+        
+        .guest-label-fixed {
+            color: #ffd700;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        
+        .guest-draggable-fixed {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .draggable-person {
+            width: 70px;
+            height: 70px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: grab;
+            transition: all 0.3s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            font-size: 2.5rem;
+            font-weight: bold;
+        }
+        
+        .draggable-person:active {
+            cursor: grabbing;
+            transform: scale(1.1);
+        }
+        
+        .draggable-person.up {
+            background: linear-gradient(135deg, #2196f3, #0d47a1);
+            color: white;
+        }
+        
+        .draggable-person.down {
+            background: linear-gradient(135deg, #ff4081, #880e4f);
+            color: white;
+        }
+        
+        .hotel-floor {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 25px;
+            position: relative;
+            min-height: 130px;
+        }
+        
+        .floor-label {
+            width: 80px;
+            font-weight: bold;
+            font-size: 1.2rem;
+            text-align: center;
+            color: #ffd700;
+            padding: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+        
+        .floor-rooms {
+            display: flex;
+            gap: 15px;
+            flex-wrap: nowrap;
+            flex: 1;
+            overflow-x: auto;
+            padding: 10px 0;
+            min-height: 120px;
+        }
+        
+        /* 房间主题样式 - P房间改为米黄色风格 */
+        .room {
+            border-radius: 10px;
+            padding: 12px;
+            min-width: 130px;
+            transition: all 0.3s;
+            position: relative;
+            border: 3px solid;
+            flex-shrink: 0;
+        }
+        
+        /* S房间 - 公主风 */
+        .room.s-theme {
+            background: linear-gradient(135deg, #ffcfe0 0%, #ff9ec0 100%);
+            border-color: #ff6b9d;
+        }
+        
+        /* P房间 - 米黄色风格 */
+        .room.p-theme {
+            background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
+            border-color: #ffb300;
+        }
+        
+        /* D房间 - 海洋风 */
+        .room.d-theme {
+            background: linear-gradient(135deg, #87ceeb 0%, #1e90ff 100%);
+            border-color: #000080;
+        }
+        
+        /* F房间 - 森林风 */
+        .room.f-theme {
+            background: linear-gradient(135deg, #90ee90 0%, #228b22 100%);
+            border-color: #006400;
+        }
+        
+        .room.active {
+            animation: pulse 2s infinite;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+        
+        .room.invalid {
+            animation: shake 0.5s;
+            border-color: #ff0000 !important;
+        }
+        
+        @keyframes shake {
+            0%, 100% {transform: translateX(0);}
+            20%, 60% {transform: translateX(-5px);}
+            40%, 80% {transform: translateX(5px);}
+        }
+        
+        .room-name {
+            font-weight: bold;
+            font-size: 1.3rem;
+            text-align: center;
+            margin-bottom: 10px;
+            padding: 5px;
+            border-radius: 5px;
+            font-family: 'Georgia', serif;
+        }
+        
+        .s-theme .room-name {
+            background: rgba(255, 255, 255, 0.3);
+            color: #d81b60;
+        }
+        
+        .p-theme .room-name {
+            background: rgba(0, 0, 0, 0.1);
+            color: #ff6f00;
+        }
+        
+        .d-theme .room-name {
+            background: rgba(255, 255, 255, 0.3);
+            color: #000080;
+        }
+        
+        .f-theme .room-name {
+            background: rgba(255, 255, 255, 0.3);
+            color: #006400;
+        }
+        
+        .room-beds {
+            display: flex;
+            flex-direction: row;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .bed {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            padding: 8px;
+            width: 80px;
+            height: 80px;
+            position: relative;
+            transition: all 0.3s;
+            border: 2px dashed rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+        }
+        
+        /* 主题床位样式 */
+        .s-theme .bed {
+            background: rgba(255, 255, 255, 0.5);
+        }
+        
+        .p-theme .bed {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .d-theme .bed {
+            background: rgba(255, 255, 255, 0.5);
+        }
+        
+        .f-theme .bed {
+            background: rgba(255, 255, 255, 0.5);
+        }
+        
+        .bed.occupied {
+            border-style: solid;
+            border-width: 2px;
+        }
+        
+        .bed.hover-over {
+            transform: scale(1.1);
+            border-width: 3px;
+            border-color: #ffd700 !important;
+            background-color: rgba(255, 215, 0, 0.2) !important;
+        }
+        
+        .bed-bedding {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .person {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.3rem;
+            transition: all 0.3s;
+            position: relative;
+        }
+        
+        .person.up {
+            background: linear-gradient(135deg, #2196f3, #0d47a1);
+            color: white;
+        }
+        
+        .person.down {
+            background: linear-gradient(135deg, #ff4081, #880e4f);
+            color: white;
+        }
+        
+        .bed-number {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            background: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+            z-index: 2;
+        }
+        
+        .room-capacity {
+            font-size: 0.85rem;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 8px;
+            padding: 3px;
+            border-radius: 5px;
+        }
+        
+        .s-theme .room-capacity {
+            background: rgba(255, 255, 255, 0.3);
+            color: #d81b60;
+        }
+        
+        .p-theme .room-capacity {
+            background: rgba(0, 0, 0, 0.1);
+            color: #ff6f00;
+        }
+        
+        .d-theme .room-capacity {
+            background: rgba(255, 255, 255, 0.3);
+            color: #000080;
+        }
+        
+        .f-theme .room-capacity {
+            background: rgba(255, 255, 255, 0.3);
+            color: #006400;
+        }
+        
+        /* 移除电子按钮 */
+        .remove-electron-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 20px;
+            height: 20px;
+            background: #f44336;
+            color: white;
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            cursor: pointer;
+            z-index: 10;
+        }
+        
+        .bed.occupied:hover .remove-electron-btn {
+            display: flex;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background: linear-gradient(135deg, #1a237e 0%, #4a148c 100%);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            border: 4px solid #ffd700;
+        }
+        
+        .modal h2 {
+            font-size: 2rem;
+            color: #ff0000;
+            margin-bottom: 15px;
+        }
+        
+        .modal p {
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+        
+        .modal-btn {
+            background: #ffd700;
+            color: #1a237e;
+            font-size: 1rem;
+            font-weight: bold;
+            padding: 10px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .modal-btn:hover {
+            background: #ffed4e;
+            transform: scale(1.05);
+        }
+        
+        .success-modal .modal-content {
+            border-color: #4caf50;
+        }
+        
+        .success-modal h2 {
+            color: #4caf50;
+        }
+        
+        footer {
+            margin-top: 20px;
+            text-align: center;
+            color: #bbbbff;
+            font-size: 0.8rem;
+            padding: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .controls-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .info-panel {
+                grid-template-columns: 1fr;
+            }
+            
+            .guest-fixed-area {
+                bottom: 20px;
+                right: 20px;
+                padding: 10px;
+            }
+            
+            .draggable-person {
+                width: 60px;
+                height: 60px;
+                font-size: 2rem;
+            }
+            
+            .hotel-floor {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .floor-label {
+                margin-bottom: 10px;
+                width: 100%;
+            }
+        }
+        
+        /* 滚动条样式 */
+        .hotel::-webkit-scrollbar {
+            width: 10px;
+        }
+        
+        .hotel::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 5px;
+        }
+        
+        .hotel::-webkit-scrollbar-thumb {
+            background: #4a148c;
+            border-radius: 5px;
+        }
+        
+        .hotel::-webkit-scrollbar-thumb:hover {
+            background: #6a1b9a;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>构造原理酒店</h1>
+            <p class="subtitle">拖拽小人到床位上安排客人入住。遵守构造原理规则，避免电子填充错误！</p>
+        </header>
+        
+        <div class="top-controls">
+            <div class="controls-grid">
+                <div class="rules-panel">
+                    <h3>入住守则：</h3>
+                    <ul>
+                        <li>一张床最多睡两个人，一人头朝上，一人头朝下</li>
+                        <li>必须一个房间住满才能住下一个房间</li>
+                        <li>房间还有空床时，不允许两人睡一张床</li>
+                        <li>房间入住顺序：1s → 2s → 2p → 3s → 3p → 4s → 3d</li>
+                        <li>特殊规则：4s²3d³后，4s中头朝下的电子需要退回重新填充</li>
+                        <li>第二次交叉：4s²3d⁸后，4s中头朝下的电子需要再次退回重新填充</li>
+                        <li>房间住满人数：s=2人，p=6人，d=10人，f=14人</li>
+                    </ul>
+                </div>
+                
+                <div class="controls-right">
+                    <div class="info-box">
+                        <h4>当前应入住房号：</h4>
+                        <div class="counter" id="currentRoom">1s (0/2人)</div>
+                    </div>
+                    
+                    <div class="info-box">
+                        <h4>已入住客人：</h4>
+                        <div class="counter" id="guestCount">0/36</div>
+                    </div>
+                    
+                    <button class="btn btn-check" id="checkRules">
+                        ✓ 检查入住规则
+                    </button>
+                    
+                    <button class="btn btn-reset" id="resetGame">
+                        ↻ 重置游戏
+                    </button>
+                </div>
+            </div>
+            
+            <div class="info-panel">
+                <div class="info-box">
+                    <h4>房间入住顺序：</h4>
+                    <div class="room-order">1s → 2s → 2p → 3s → 3p → 4s → 3d → 4p → 5s → 4d → 5p → 6s → 4f → 5d → 6p → 7s → 5f → 6d → 7p</div>
+                </div>
+                
+                <div class="info-box">
+                    <h4>房间主题：</h4>
+                    <div class="room-themes">
+                        <div>s = 公主风</div>
+                        <div>p = 米黄风</div>
+                        <div>d = 海洋风</div>
+                        <div>f = 森林风</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <section class="hotel-section">
+            <h2 class="section-title">量子酒店楼层布局</h2>
+            <div class="hotel" id="hotel">
+                <!-- 酒店楼层将通过JavaScript动态生成 -->
+            </div>
+        </section>
+        
+        <!-- 固定在右下角的小人区域 -->
+        <div class="guest-fixed-area">
+            <div class="guest-label-fixed">拖拽小人到床位上：</div>
+            <div class="guest-draggable-fixed">
+                <div class="draggable-person up" id="upGuest" draggable="true">↑</div>
+                <div class="draggable-person down" id="downGuest" draggable="true">↓</div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>游戏设计基于原子构造原理：电子按照能级顺序填充轨道，每个轨道最多容纳两个自旋方向相反的电子</p>
+        </footer>
+    </div>
+    
+    <!-- 游戏失败模态框 -->
+    <div class="modal" id="deathModal">
+        <div class="modal-content">
+            <h2>💀 你死了！</h2>
+            <p id="deathMessage">你违反了酒店入住规则！在量子世界中，违反构造原理会导致原子不稳定。</p>
+            <p>请重新开始游戏，并严格遵守入住守则。</p>
+            <button class="modal-btn" id="restartBtn">重新开始</button>
+        </div>
+    </div>
+    
+    <!-- 游戏成功模态框 -->
+    <div class="modal success-modal" id="successModal">
+        <div class="modal-content">
+            <h2>🎉 恭喜！</h2>
+            <p>你成功安排了 36 位客人！你完全掌握了构造原理。</p>
+            <p>原子结构稳定，酒店运营良好！</p>
+            <button class="modal-btn" id="continueBtn">继续游戏</button>
+        </div>
+    </div>
+    
+    <script>
+        // 游戏数据
+        const gameData = {
+            floors: [
+                { name: "K层", rooms: [{ name: "1s", beds: 1, type: "s", maxOccupants: 2, theme: "s-theme" }] },
+                { name: "L层", rooms: [{ name: "2s", beds: 1, type: "s", maxOccupants: 2, theme: "s-theme" }, { name: "2p", beds: 3, type: "p", maxOccupants: 6, theme: "p-theme" }] },
+                { name: "M层", rooms: [{ name: "3s", beds: 1, type: "s", maxOccupants: 2, theme: "s-theme" }, { name: "3p", beds: 3, type: "p", maxOccupants: 6, theme: "p-theme" }, { name: "3d", beds: 5, type: "d", maxOccupants: 10, theme: "d-theme" }] },
+                { name: "N层", rooms: [{ name: "4s", beds: 1, type: "s", maxOccupants: 2, theme: "s-theme" }, { name: "4p", beds: 3, type: "p", maxOccupants: 6, theme: "p-theme" }, { name: "4d", beds: 5, type: "d", maxOccupants: 10, theme: "d-theme" }, { name: "4f", beds: 7, type: "f", maxOccupants: 14, theme: "f-theme" }] },
+                { name: "O层", rooms: [{ name: "5s", beds: 1, type: "s", maxOccupants: 2, theme: "s-theme" }, { name: "5p", beds: 3, type: "p", maxOccupants: 6, theme: "p-theme" }, { name: "5d", beds: 5, type: "d", maxOccupants: 10, theme: "d-theme" }, { name: "5f", beds: 7, type: "f", maxOccupants: 14, theme: "f-theme" }] },
+                { name: "P层", rooms: [{ name: "6s", beds: 1, type: "s", maxOccupants: 2, theme: "s-theme" }, { name: "6p", beds: 3, type: "p", maxOccupants: 6, theme: "p-theme" }, { name: "6d", beds: 5, type: "d", maxOccupants: 10, theme: "d-theme" }] },
+                { name: "Q层", rooms: [{ name: "7s", beds: 1, type: "s", maxOccupants: 2, theme: "s-theme" }, { name: "7p", beds: 3, type: "p", maxOccupants: 6, theme: "p-theme" }] }
+            ],
+            
+            // 构造原理填充顺序
+            roomOrder: [
+                "1s", "2s", "2p", "3s", "3p", 
+                "4s", "3d", "4p", "5s", "4d", 
+                "5p", "6s", "4f", "5d", "6p", 
+                "7s", "5f", "6d", "7p"
+            ],
+            
+            currentState: {
+                totalOccupants: 0,
+                currentRoomIndex: 0,
+                occupiedBeds: {},
+                roomStatus: {},
+                specialState: {
+                    needRemove4sElectron: false,
+                    removed4sElectron: false,
+                    crossoverStep: 0,  // 0=无交叉, 1=第一次交叉, 2=第二次交叉
+                    firstCrossoverCompleted: false,
+                    secondCrossoverTriggered: false,
+                    secondCrossoverCompleted: false
+                }
+            }
+        };
+
+        // 初始化游戏
+        function initGame() {
+            gameData.currentState = {
+                totalOccupants: 0,
+                currentRoomIndex: 0,
+                occupiedBeds: {},
+                roomStatus: {},
+                specialState: {
+                    needRemove4sElectron: false,
+                    removed4sElectron: false,
+                    crossoverStep: 0,
+                    firstCrossoverCompleted: false,
+                    secondCrossoverTriggered: false,
+                    secondCrossoverCompleted: false
+                }
+            };
+            
+            gameData.floors.forEach(floor => {
+                floor.rooms.forEach(room => {
+                    gameData.currentState.roomStatus[room.name] = {
+                        filledBeds: 0,
+                        totalBeds: room.beds,
+                        maxOccupants: room.maxOccupants,
+                        currentOccupants: 0
+                    };
+                });
+            });
+            
+            updateGuestCount();
+            updateCurrentRoom();
+            renderHotel();
+            initDragAndDrop();
+            
+            document.getElementById("checkRules").disabled = false;
+        }
+
+        // 渲染酒店
+        function renderHotel() {
+            const hotelEl = document.getElementById("hotel");
+            hotelEl.innerHTML = "";
+            
+            gameData.floors.forEach(floor => {
+                const floorEl = document.createElement("div");
+                floorEl.className = "hotel-floor";
+                
+                const floorLabel = document.createElement("div");
+                floorLabel.className = "floor-label";
+                floorLabel.textContent = floor.name;
+                floorEl.appendChild(floorLabel);
+                
+                const roomsContainer = document.createElement("div");
+                roomsContainer.className = "floor-rooms";
+                
+                floor.rooms.forEach(room => {
+                    const roomEl = createRoomElement(room);
+                    roomsContainer.appendChild(roomEl);
+                });
+                
+                floorEl.appendChild(roomsContainer);
+                hotelEl.appendChild(floorEl);
+            });
+        }
+
+        // 创建房间元素
+        function createRoomElement(room) {
+            const roomEl = document.createElement("div");
+            const roomStatus = gameData.currentState.roomStatus[room.name];
+            
+            roomEl.className = `room ${room.theme}`;
+            
+            // 检查是否为当前应入住的房间
+            const currentRoomName = getCurrentRoom();
+            if (room.name === currentRoomName) {
+                roomEl.classList.add("active");
+            }
+            
+            // 特殊状态：如果4s房间需要移除电子，添加特殊标记
+            const specialState = gameData.currentState.specialState;
+            if (room.name === "4s" && specialState.needRemove4sElectron) {
+                roomEl.style.boxShadow = "0 0 15px #ff0000";
+            }
+            
+            const roomNameEl = document.createElement("div");
+            roomNameEl.className = "room-name";
+            roomNameEl.textContent = room.name;
+            roomEl.appendChild(roomNameEl);
+            
+            const bedsContainer = document.createElement("div");
+            bedsContainer.className = "room-beds";
+            
+            // 床位从左到右排列
+            for (let i = 0; i < room.beds; i++) {
+                const bedEl = createBedElement(room.name, i);
+                bedsContainer.appendChild(bedEl);
+            }
+            
+            roomEl.appendChild(bedsContainer);
+            
+            const capacityEl = document.createElement("div");
+            capacityEl.className = "room-capacity";
+            capacityEl.textContent = `已住: ${roomStatus.currentOccupants}/${roomStatus.maxOccupants}人`;
+            roomEl.appendChild(capacityEl);
+            
+            return roomEl;
+        }
+
+        // 创建床位元素
+        function createBedElement(roomName, bedIndex) {
+            const bedEl = document.createElement("div");
+            bedEl.className = "bed";
+            bedEl.dataset.room = roomName;
+            bedEl.dataset.bedIndex = bedIndex;
+            
+            const bedKey = `${roomName}-${bedIndex}`;
+            const occupants = gameData.currentState.occupiedBeds[bedKey] || [];
+            
+            // 床位编号
+            const bedNumber = document.createElement("div");
+            bedNumber.className = "bed-number";
+            bedNumber.textContent = bedIndex + 1;
+            bedEl.appendChild(bedNumber);
+            
+            const beddingEl = document.createElement("div");
+            beddingEl.className = "bed-bedding";
+            
+            if (occupants.length > 0) {
+                bedEl.classList.add("occupied");
+                
+                occupants.forEach((direction, index) => {
+                    const personEl = document.createElement("div");
+                    personEl.className = `person ${direction}`;
+                    personEl.textContent = direction === "up" ? "↑" : "↓";
+                    personEl.dataset.room = roomName;
+                    personEl.dataset.bedIndex = bedIndex;
+                    personEl.dataset.position = index;
+                    
+                    // 关键修复：在第二次交叉时也显示移除按钮
+                    const specialState = gameData.currentState.specialState;
+                    if (roomName === "4s" && direction === "down" && 
+                        specialState.needRemove4sElectron && 
+                        (specialState.crossoverStep === 1 || specialState.crossoverStep === 2)) {
+                        const removeBtn = document.createElement("div");
+                        removeBtn.className = "remove-electron-btn";
+                        removeBtn.textContent = "×";
+                        
+                        if (specialState.crossoverStep === 1) {
+                            removeBtn.title = "点击移除这个电子（第一次交叉：4s²3d³）";
+                        } else if (specialState.crossoverStep === 2) {
+                            removeBtn.title = "点击移除这个电子（第二次交叉：4s²3d⁸）";
+                        }
+                        
+                        removeBtn.addEventListener("click", function(e) {
+                            e.stopPropagation();
+                            removeElectronFromBed(roomName, bedIndex, index);
+                        });
+                        bedEl.appendChild(removeBtn);
+                    }
+                    
+                    beddingEl.appendChild(personEl);
+                });
+            }
+            
+            bedEl.appendChild(beddingEl);
+            
+            return bedEl;
+        }
+
+        // 从床位移除电子
+        function removeElectronFromBed(roomName, bedIndex, position) {
+            const bedKey = `${roomName}-${bedIndex}`;
+            const occupants = gameData.currentState.occupiedBeds[bedKey];
+            
+            if (!occupants || occupants.length <= position) {
+                return false;
+            }
+            
+            // 移除指定位置的电子
+            occupants.splice(position, 1);
+            
+            // 更新房间状态
+            const roomStatus = gameData.currentState.roomStatus[roomName];
+            roomStatus.currentOccupants--;
+            
+            // 如果床位变空，更新filledBeds
+            if (occupants.length === 0) {
+                roomStatus.filledBeds--;
+                delete gameData.currentState.occupiedBeds[bedKey];
+            }
+            
+            // 减少总客人数
+            gameData.currentState.totalOccupants--;
+            
+            const specialState = gameData.currentState.specialState;
+            
+            // 特殊状态处理：如果移除了4s的电子
+            if (roomName === "4s" && specialState.needRemove4sElectron) {
+                specialState.needRemove4sElectron = false;
+                specialState.removed4sElectron = true;
+                
+                // 更新当前房间索引到3d
+                const threeDIndex = gameData.roomOrder.indexOf("3d");
+                if (threeDIndex !== -1) {
+                    gameData.currentState.currentRoomIndex = threeDIndex;
+                }
+            }
+            
+            // 更新UI
+            updateGuestCount();
+            updateCurrentRoom();
+            renderHotel();
+            initDragAndDrop();
+            
+            return true;
+        }
+
+        // 检查交叉触发条件 - 修复了第二次交叉的逻辑
+        function checkCrossoverTriggers() {
+            const specialState = gameData.currentState.specialState;
+            const roomStatus = gameData.currentState.roomStatus;
+            
+            const fourS = roomStatus["4s"] ? roomStatus["4s"].currentOccupants : 0;
+            const threeD = roomStatus["3d"] ? roomStatus["3d"].currentOccupants : 0;
+            
+            // 如果已经需要移除电子，不重复触发
+            if (specialState.needRemove4sElectron) {
+                return;
+            }
+            
+            // 检查第一次交叉：4s²3d³
+            if (fourS === 2 && threeD === 3 && !specialState.firstCrossoverCompleted) {
+                specialState.needRemove4sElectron = true;
+                specialState.crossoverStep = 1;
+                return;
+            }
+            
+            // 关键修复：检查第二次交叉：4s²3d⁸
+            // 只要满足条件就触发，不需要检查firstCrossoverCompleted
+            if (fourS === 2 && threeD === 8 && !specialState.secondCrossoverCompleted) {
+                specialState.needRemove4sElectron = true;
+                specialState.crossoverStep = 2;
+                specialState.secondCrossoverTriggered = true;
+                return;
+            }
+        }
+
+        // 获取当前应入住的房间 - 修复了第二次交叉的逻辑
+        function getCurrentRoom() {
+            const specialState = gameData.currentState.specialState;
+            
+            // 如果已经触发了交叉且需要移除电子，返回4s
+            if (specialState.needRemove4sElectron) {
+                return "4s";
+            }
+            
+            // 如果4s电子已移除，根据交叉步骤处理
+            if (specialState.removed4sElectron) {
+                const roomStatus = gameData.currentState.roomStatus;
+                const fourS = roomStatus["4s"] ? roomStatus["4s"].currentOccupants : 0;
+                const threeD = roomStatus["3d"] ? roomStatus["3d"].currentOccupants : 0;
+                
+                if (specialState.crossoverStep === 1) {
+                    // 第一次交叉逻辑
+                    if (threeD < 5) {
+                        return "3d";
+                    } else if (threeD === 5 && fourS === 1) {
+                        return "4s";
+                    } else if (threeD === 5 && fourS === 2) {
+                        return "3d";
+                    } else if (threeD === 10) {
+                        specialState.removed4sElectron = false;
+                        specialState.crossoverStep = 0;
+                        specialState.firstCrossoverCompleted = true;
+                        
+                        // 完成第一次交叉后，应该继续填充4p
+                        const fourPIndex = gameData.roomOrder.indexOf("4p");
+                        if (fourPIndex !== -1) {
+                            gameData.currentState.currentRoomIndex = fourPIndex;
+                        }
+                        return "4p";
+                    }
+                } else if (specialState.crossoverStep === 2) {
+                    // 第二次交叉逻辑
+                    if (threeD < 10) {
+                        return "3d";
+                    } else if (threeD === 10 && fourS === 1) {
+                        return "4s";
+                    } else if (threeD === 10 && fourS === 2) {
+                        specialState.removed4sElectron = false;
+                        specialState.crossoverStep = 0;
+                        specialState.secondCrossoverCompleted = true;
+                        
+                        // 第二次交叉完成后，应该继续填充4p（如果4p未满）
+                        const fourPStatus = roomStatus["4p"];
+                        if (fourPStatus && fourPStatus.currentOccupants < fourPStatus.maxOccupants) {
+                            const fourPIndex = gameData.roomOrder.indexOf("4p");
+                            if (fourPIndex !== -1) {
+                                gameData.currentState.currentRoomIndex = fourPIndex;
+                            }
+                            return "4p";
+                        } else {
+                            // 如果4p已满，找下一个房间
+                            return findNextRoom();
+                        }
+                    }
+                }
+            }
+            
+            // 否则返回正常的填充顺序
+            return findNextRoom();
+        }
+
+        // 查找下一个应入住的房间
+        function findNextRoom() {
+            const roomStatus = gameData.currentState.roomStatus;
+            const currentIndex = gameData.currentState.currentRoomIndex;
+            
+            // 从当前索引开始查找
+            for (let i = currentIndex; i < gameData.roomOrder.length; i++) {
+                const roomName = gameData.roomOrder[i];
+                const status = roomStatus[roomName];
+                
+                if (status && status.currentOccupants < status.maxOccupants) {
+                    gameData.currentState.currentRoomIndex = i;
+                    return roomName;
+                }
+            }
+            
+            // 如果都满了，返回最后一个房间
+            return gameData.roomOrder[Math.min(currentIndex, gameData.roomOrder.length - 1)];
+        }
+
+        // 检查房间是否已满，更新当前房间索引
+        function checkAndUpdateRoomStatus(roomName) {
+            const roomStatus = gameData.currentState.roomStatus[roomName];
+            const specialState = gameData.currentState.specialState;
+            
+            // 特殊状态处理
+            if (specialState.needRemove4sElectron && roomName === "4s") {
+                // 等待用户移除4s的电子
+                return;
+            }
+            
+            if (specialState.removed4sElectron) {
+                // 处理交叉填充
+                if (specialState.crossoverStep === 1) {
+                    // 第一次交叉
+                    if (roomName === "3d" && roomStatus.currentOccupants === 5) {
+                        return;
+                    }
+                    
+                    if (roomName === "4s" && roomStatus.currentOccupants === 2) {
+                        return;
+                    }
+                    
+                    if (roomName === "3d" && roomStatus.currentOccupants === 10) {
+                        specialState.removed4sElectron = false;
+                        specialState.crossoverStep = 0;
+                        specialState.firstCrossoverCompleted = true;
+                        
+                        // 更新房间索引到4p
+                        const fourPIndex = gameData.roomOrder.indexOf("4p");
+                        if (fourPIndex !== -1) {
+                            gameData.currentState.currentRoomIndex = fourPIndex;
+                        }
+                    }
+                } else if (specialState.crossoverStep === 2) {
+                    // 第二次交叉
+                    if (roomName === "3d" && roomStatus.currentOccupants === 10) {
+                        return;
+                    }
+                    
+                    if (roomName === "4s" && roomStatus.currentOccupants === 2) {
+                        specialState.removed4sElectron = false;
+                        specialState.crossoverStep = 0;
+                        specialState.secondCrossoverCompleted = true;
+                        
+                        // 更新房间索引到4p
+                        const fourPIndex = gameData.roomOrder.indexOf("4p");
+                        if (fourPIndex !== -1) {
+                            gameData.currentState.currentRoomIndex = fourPIndex;
+                        }
+                    }
+                }
+            }
+            
+            // 正常填充逻辑
+            if (roomStatus.currentOccupants === roomStatus.maxOccupants && !specialState.removed4sElectron) {
+                // 找到下一个未满的房间
+                findNextRoom();
+            }
+        }
+
+        // 初始化拖拽功能
+        function initDragAndDrop() {
+            // 清除所有现有事件监听器
+            const upGuest = document.getElementById('upGuest');
+            const downGuest = document.getElementById('downGuest');
+            
+            // 移除旧的事件监听器
+            const newUpGuest = upGuest.cloneNode(true);
+            const newDownGuest = downGuest.cloneNode(true);
+            
+            upGuest.parentNode.replaceChild(newUpGuest, upGuest);
+            downGuest.parentNode.replaceChild(newDownGuest, downGuest);
+            
+            // 为小人添加拖拽事件
+            document.getElementById('upGuest').addEventListener('dragstart', handleDragStart);
+            document.getElementById('downGuest').addEventListener('dragstart', handleDragStart);
+            
+            // 为所有床位添加拖拽事件
+            const beds = document.querySelectorAll('.bed');
+            beds.forEach(bed => {
+                bed.addEventListener('dragover', handleDragOver);
+                bed.addEventListener('dragenter', handleDragEnter);
+                bed.addEventListener('dragleave', handleDragLeave);
+                bed.addEventListener('drop', handleDrop);
+            });
+            
+            // 防止默认行为
+            document.addEventListener('dragover', function(e) {
+                e.preventDefault();
+            });
+            
+            document.addEventListener('drop', function(e) {
+                e.preventDefault();
+            });
+        }
+
+        // 拖拽开始处理
+        function handleDragStart(e) {
+            const direction = e.target.id === 'upGuest' ? 'up' : 'down';
+            e.dataTransfer.setData('direction', direction);
+            e.dataTransfer.effectAllowed = 'move';
+            
+            // 创建拖拽效果
+            e.target.style.opacity = '0.7';
+            
+            // 5秒后恢复透明度（防止卡住）
+            setTimeout(() => {
+                e.target.style.opacity = '1';
+            }, 5000);
+        }
+
+        // 拖拽悬停处理
+        function handleDragOver(e) {
+            e.preventDefault();
+            if (e.target.classList.contains('bed')) {
+                e.dataTransfer.dropEffect = 'move';
+            }
+        }
+
+        // 拖拽进入处理
+        function handleDragEnter(e) {
+            if (e.target.classList.contains('bed')) {
+                e.target.classList.add('hover-over');
+            }
+        }
+
+        // 拖拽离开处理
+        function handleDragLeave(e) {
+            if (e.target.classList.contains('bed')) {
+                e.target.classList.remove('hover-over');
+            }
+        }
+
+        // 放置处理
+        function handleDrop(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // 移除悬停效果
+            const beds = document.querySelectorAll('.bed');
+            beds.forEach(bed => bed.classList.remove('hover-over'));
+            
+            let bedElement = e.target;
+            // 如果点击的是床位内部的元素，找到父床位元素
+            while (bedElement && !bedElement.classList.contains('bed')) {
+                bedElement = bedElement.parentElement;
+            }
+            
+            if (!bedElement || !bedElement.classList.contains('bed')) {
+                // 恢复小人的显示
+                document.getElementById('upGuest').style.opacity = '1';
+                document.getElementById('downGuest').style.opacity = '1';
+                return;
+            }
+            
+            try {
+                const direction = e.dataTransfer.getData('direction');
+                const roomName = bedElement.dataset.room;
+                const bedIndex = parseInt(bedElement.dataset.bedIndex);
+                
+                // 分配客人到床位
+                const success = assignGuestToBed(roomName, bedIndex, direction);
+                
+                // 恢复小人的显示
+                document.getElementById('upGuest').style.opacity = '1';
+                document.getElementById('downGuest').style.opacity = '1';
+                
+                if (success) {
+                    // 重新初始化拖拽功能
+                    setTimeout(initDragAndDrop, 10);
+                }
+            } catch (error) {
+                console.error("放置错误:", error);
+                // 恢复小人的显示
+                document.getElementById('upGuest').style.opacity = '1';
+                document.getElementById('downGuest').style.opacity = '1';
+            }
+        }
+
+        // 分配客人到床位
+        function assignGuestToBed(roomName, bedIndex, direction) {
+            const currentRoom = getCurrentRoom();
+            const roomStatus = gameData.currentState.roomStatus[roomName];
+            const specialState = gameData.currentState.specialState;
+            
+            // 检查是否按顺序入住
+            if (roomName !== currentRoom) {
+                // 特殊情况：如果4s需要移除电子，不能继续填充
+                if (specialState.needRemove4sElectron) {
+                    const message = specialState.crossoverStep === 1 ? 
+                        "必须先移除4s房间中的一个电子（第一次交叉：4s²3d³后需要调整）！" :
+                        "必须先移除4s房间中的一个电子（第二次交叉：4s²3d⁸后需要调整）！";
+                    showDeathModal(message);
+                    return false;
+                }
+                
+                const currentRoomStatus = gameData.currentState.roomStatus[currentRoom];
+                if (currentRoomStatus && currentRoomStatus.currentOccupants < currentRoomStatus.maxOccupants) {
+                    showDeathModal(`必须住满 ${currentRoom} 房间（${currentRoomStatus.currentOccupants}/${currentRoomStatus.maxOccupants}人）才能入住 ${roomName} 房间！`);
+                    return false;
+                }
+            }
+            
+            const bedKey = `${roomName}-${bedIndex}`;
+            const occupants = gameData.currentState.occupiedBeds[bedKey] || [];
+            
+            if (occupants.length >= 2) {
+                showDeathModal("一张床最多只能睡两个人！");
+                return false;
+            }
+            
+            if (roomStatus.filledBeds < roomStatus.totalBeds && occupants.length === 1) {
+                showDeathModal("房间还有空床，不允许两个人睡一张床！");
+                return false;
+            }
+            
+            if (roomStatus.currentOccupants >= roomStatus.maxOccupants) {
+                showDeathModal(`${roomName} 房间已经住满了！`);
+                return false;
+            }
+            
+            // 特殊情况处理
+            const isSpecial4sCase = (roomName === "4s" && 
+                                   specialState.removed4sElectron && 
+                                   ((specialState.crossoverStep === 1 && gameData.currentState.roomStatus["3d"]?.currentOccupants === 5) ||
+                                    (specialState.crossoverStep === 2 && gameData.currentState.roomStatus["3d"]?.currentOccupants === 10)) &&
+                                   roomStatus.currentOccupants === 1);
+            
+            if (occupants.length === 0 && direction !== "up" && !isSpecial4sCase) {
+                showDeathModal("第一个入住这张床的客人必须头朝上！");
+                return false;
+            }
+            
+            if (occupants.length === 1 && direction !== "down" && !isSpecial4sCase) {
+                showDeathModal("第二个入住这张床的客人必须头朝下！");
+                return false;
+            }
+            
+            // 特殊检查：如果4s需要移除电子，不能继续填充4s
+            if (roomName === "4s" && specialState.needRemove4sElectron) {
+                const message = specialState.crossoverStep === 1 ? 
+                    "必须先移除4s房间中的一个电子（第一次交叉）才能继续填充！" :
+                    "必须先移除4s房间中的一个电子（第二次交叉）才能继续填充！";
+                showDeathModal(message);
+                return false;
+            }
+            
+            // 分配客人
+            if (!gameData.currentState.occupiedBeds[bedKey]) {
+                gameData.currentState.occupiedBeds[bedKey] = [];
+            }
+            gameData.currentState.occupiedBeds[bedKey].push(direction);
+            
+            // 更新房间状态
+            roomStatus.currentOccupants++;
+            if (occupants.length === 0) {
+                roomStatus.filledBeds++;
+            }
+            
+            // 增加总客人数
+            gameData.currentState.totalOccupants++;
+            
+            // 关键修复：在分配电子后检查是否触发交叉
+            checkCrossoverTriggers();
+            
+            // 检查和更新房间状态
+            checkAndUpdateRoomStatus(roomName);
+            
+            // 更新UI
+            updateGuestCount();
+            updateCurrentRoom();
+            renderHotel();
+            
+            checkAllRules();
+            checkVictory();
+            
+            return true;
+        }
+
+        // 检查所有规则
+        function checkAllRules() {
+            let isValid = true;
+            let errorMessage = "";
+            
+            // 规则1：检查是否有床位超过2人
+            Object.keys(gameData.currentState.occupiedBeds).forEach(bedKey => {
+                if (gameData.currentState.occupiedBeds[bedKey].length > 2) {
+                    isValid = false;
+                    errorMessage = "一张床最多只能睡两个人！";
+                }
+            });
+            
+            // 规则2：检查是否按顺序入住
+            const specialState = gameData.currentState.specialState;
+            
+            if (!specialState.needRemove4sElectron && !specialState.removed4sElectron) {
+                for (let i = 0; i < gameData.roomOrder.length; i++) {
+                    const roomName = gameData.roomOrder[i];
+                    const roomStatus = gameData.currentState.roomStatus[roomName];
+                    
+                    if (!roomStatus) continue;
+                    
+                    if (roomStatus.currentOccupants < roomStatus.maxOccupants) {
+                        for (let j = i + 1; j < gameData.roomOrder.length; j++) {
+                            const nextRoomName = gameData.roomOrder[j];
+                            const nextRoomStatus = gameData.currentState.roomStatus[nextRoomName];
+                            
+                            if (nextRoomStatus && nextRoomStatus.currentOccupants > 0) {
+                                isValid = false;
+                                errorMessage = `${roomName} 房间未住满，但 ${nextRoomName} 房间已有人入住！`;
+                                break;
+                            }
+                        }
+                        if (!isValid) break;
+                    }
+                }
+            }
+            
+            // 规则3：检查是否在有空床的情况下两人睡一张床
+            Object.keys(gameData.currentState.roomStatus).forEach(roomName => {
+                const roomStatus = gameData.currentState.roomStatus[roomName];
+                
+                if (roomStatus.filledBeds < roomStatus.totalBeds) {
+                    for (let i = 0; i < roomStatus.totalBeds; i++) {
+                        const bedKey = `${roomName}-${i}`;
+                        const occupants = gameData.currentState.occupiedBeds[bedKey] || [];
+                        if (occupants.length > 1) {
+                            isValid = false;
+                            errorMessage = `${roomName} 房间还有空床，但有一张床睡了两个人！`;
+                            break;
+                        }
+                    }
+                }
+            });
+            
+            if (!isValid) {
+                showDeathModal(errorMessage);
+                return false;
+            }
+            
+            return true;
+        }
+
+        // 显示死亡模态框
+        function showDeathModal(message) {
+            const modal = document.getElementById("deathModal");
+            const deathMessage = document.getElementById("deathMessage");
+            
+            if (message) {
+                deathMessage.innerHTML = `你违反了酒店入住规则！<br>${message}<br>在量子世界中，违反构造原理会导致原子不稳定。`;
+            }
+            
+            modal.style.display = "flex";
+            
+            document.getElementById("checkRules").disabled = true;
+            
+            // 标记违规的房间
+            setTimeout(() => {
+                const currentRoomName = getCurrentRoom();
+                const rooms = document.querySelectorAll(".room");
+                rooms.forEach(room => {
+                    const roomNameEl = room.querySelector('.room-name');
+                    if (roomNameEl && roomNameEl.textContent === currentRoomName) {
+                        room.classList.add("invalid");
+                    }
+                });
+            }, 100);
+        }
+
+        // 显示成功模态框
+        function showSuccessModal() {
+            const modal = document.getElementById("successModal");
+            modal.style.display = "flex";
+        }
+
+        // 更新客人数量显示
+        function updateGuestCount() {
+            const totalOccupants = Object.values(gameData.currentState.roomStatus).reduce(
+                (sum, room) => sum + room.currentOccupants, 0
+            );
+            document.getElementById("guestCount").textContent = `${totalOccupants}/36`;
+        }
+
+        // 更新当前房间显示
+        function updateCurrentRoom() {
+            const currentRoomName = getCurrentRoom();
+            const roomStatus = gameData.currentState.roomStatus[currentRoomName];
+            const specialState = gameData.currentState.specialState;
+            
+            let displayText = currentRoomName;
+            
+            if (specialState.needRemove4sElectron) {
+                const suffix = specialState.crossoverStep === 1 ? "（第一次交叉：需要移除一个电子）" : "（第二次交叉：需要移除一个电子）";
+                displayText = "4s " + suffix;
+            } else if (specialState.removed4sElectron) {
+                if (currentRoomName === "3d") {
+                    const threeDCount = roomStatus ? roomStatus.currentOccupants : 0;
+                    const fourSCount = gameData.currentState.roomStatus["4s"] ? gameData.currentState.roomStatus["4s"].currentOccupants : 0;
+                    
+                    if (specialState.crossoverStep === 1 && threeDCount === 5 && fourSCount === 1) {
+                        displayText = "4s（第一次交叉：填充第二个电子）";
+                    } else if (specialState.crossoverStep === 2 && threeDCount === 10 && fourSCount === 1) {
+                        displayText = "4s（第二次交叉：填充第二个电子）";
+                    } else if (roomStatus) {
+                        displayText = `${currentRoomName} (${roomStatus.currentOccupants}/${roomStatus.maxOccupants}人)`;
+                    }
+                } else if (currentRoomName === "4s") {
+                    const suffix = specialState.crossoverStep === 1 ? "（第一次交叉：填充第二个电子）" : "（第二次交叉：填充第二个电子）";
+                    displayText = "4s " + suffix;
+                } else if (roomStatus) {
+                    displayText = `${currentRoomName} (${roomStatus.currentOccupants}/${roomStatus.maxOccupants}人)`;
+                }
+            } else if (roomStatus) {
+                displayText = `${currentRoomName} (${roomStatus.currentOccupants}/${roomStatus.maxOccupants}人)`;
+            } else {
+                displayText = `${currentRoomName} (0/2人)`;
+            }
+            
+            document.getElementById("currentRoom").textContent = displayText;
+        }
+
+        // 检查游戏是否胜利
+        function checkVictory() {
+            let totalOccupants = 0;
+            
+            for (const roomName in gameData.currentState.roomStatus) {
+                const roomStatus = gameData.currentState.roomStatus[roomName];
+                totalOccupants += roomStatus.currentOccupants;
+            }
+            
+            // 修改胜利条件：总人数达到36人且规则检查通过
+            if (totalOccupants === 36 && checkAllRules()) {
+                setTimeout(() => {
+                    showSuccessModal();
+                }, 500);
+            }
+        }
+
+        // 事件监听器
+        document.getElementById("checkRules").addEventListener("click", () => {
+            if (checkAllRules()) {
+                alert("所有规则都符合！继续安排客人吧。");
+                checkVictory();
+            }
+        });
+        
+        document.getElementById("resetGame").addEventListener("click", () => {
+            if (confirm("确定要重置游戏吗？所有进度都会丢失。")) {
+                initGame();
+            }
+        });
+        
+        document.getElementById("restartBtn").addEventListener("click", () => {
+            document.getElementById("deathModal").style.display = "none";
+            initGame();
+        });
+        
+        document.getElementById("continueBtn").addEventListener("click", () => {
+            document.getElementById("successModal").style.display = "none";
+        });
+
+        // 初始化游戏
+        window.onload = initGame;
+    </script>
+</body>
+</html>

@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>化学游戏中心 | WONG</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a237e 0%, #4a148c 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            padding: 40px 0;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            margin-bottom: 40px;
+        }
+        
+        h1 {
+            font-size: 3rem;
+            color: #ffd700;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 10px rgba(255, 215, 0, 0.3);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            color: #bbbbff;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin: 40px 0;
+        }
+        
+        .game-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .game-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            border-color: rgba(255, 215, 0, 0.5);
+        }
+        
+        .game-preview {
+            height: 200px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .preview-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .game-card:hover .preview-overlay {
+            opacity: 1;
+        }
+        
+        .play-btn {
+            padding: 12px 30px;
+            background: linear-gradient(45deg, #ffd700, #ff6b00);
+            border: none;
+            border-radius: 25px;
+            color: #1a237e;
+            font-weight: bold;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .play-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+        }
+        
+        .game-info {
+            padding: 25px;
+        }
+        
+        .game-title {
+            font-size: 1.8rem;
+            color: #ffd700;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .game-icon {
+            font-size: 1.5rem;
+        }
+        
+        .game-description {
+            color: #ccccff;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        
+        .game-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 15px;
+        }
+        
+        .tag {
+            background: rgba(255, 215, 0, 0.2);
+            color: #ffd700;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 30px;
+            margin-top: 50px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: #8888cc;
+        }
+        
+        .stats-bar {
+            display: flex;
+            justify-content: space-around;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 30px 0;
+        }
+        
+        .stat {
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            color: #ffd700;
+            font-weight: bold;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: #bbbbff;
+        }
+        
+        @media (max-width: 768px) {
+            .games-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .stats-bar {
+                flex-direction: column;
+                gap: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔬 化学游戏中心</h1>
+            <p class="subtitle">通过有趣的游戏学习化学知识，让化学学习变得生动有趣！包含离子反应、晶体结构和原子构造原理等核心概念。</p>
+        </header>
+        
+        <div class="stats-bar">
+            <div class="stat">
+                <div class="stat-number">3</div>
+                <div class="stat-label">精品游戏</div>
+            </div>
+            <div class="stat">
+                <div class="stat-number">100+</div>
+                <div class="stat-label">化学知识点</div>
+            </div>
+            <div class="stat">
+                <div class="stat-number">∞</div>
+                <div class="stat-label">学习乐趣</div>
+            </div>
+        </div>
+        
+        <div class="games-grid">
+            <!-- 离子消消乐 -->
+            <div class="game-card">
+                <div class="game-preview" style="background: linear-gradient(135deg, #4ECDC4, #FF6B6B);">
+                    <div class="preview-overlay">
+                        <button class="play-btn" onclick="window.open('离子消消乐-WONG.html', '_blank')">开始游戏</button>
+                    </div>
+                </div>
+                <div class="game-info">
+                    <h2 class="game-title">
+                        <span class="game-icon">⚗️</span> 离子消消乐
+                    </h2>
+                    <p class="game-description">
+                        通过消除不共存的离子来学习离子反应规则！找出会生成沉淀、气体或发生氧化还原反应的离子对，测试你的化学知识。
+                    </p>
+                    <div class="game-tags">
+                        <span class="tag">离子反应</span>
+                        <span class="tag">沉淀反应</span>
+                        <span class="tag">氧化还原</span>
+                        <span class="tag">游戏化学习</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 晶体结构 -->
+            <div class="game-card">
+                <div class="game-preview" style="background: linear-gradient(135deg, #2196F3, #9C27B0);">
+                    <div class="preview-overlay">
+                        <button class="play-btn" onclick="window.open('晶体结构-WONG.html', '_blank')">开始游戏</button>
+                    </div>
+                </div>
+                <div class="game-info">
+                    <h2 class="game-title">
+                        <span class="game-icon">💎</span> 晶体结构星空实验室
+                    </h2>
+                    <p class="game-description">
+                        在星空中探索各种晶体结构！可视化观察简单立方、体心立方、面心立方和金刚石结构，理解晶体学的奥秘。
+                    </p>
+                    <div class="game-tags">
+                        <span class="tag">晶体学</span>
+                        <span class="tag">三维可视化</span>
+                        <span class="tag">星空主题</span>
+                        <span class="tag">交互学习</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 构造原理 -->
+            <div class="game-card">
+                <div class="game-preview" style="background: linear-gradient(135deg, #4CAF50, #FF5722);">
+                    <div class="preview-overlay">
+                        <button class="play-btn" onclick="window.open('构造原理-WONG.html', '_blank')">开始游戏</button>
+                    </div>
+                </div>
+                <div class="game-info">
+                    <h2 class="game-title">
+                        <span class="game-icon">🏨</span> 构造原理酒店
+                    </h2>
+                    <p class="game-description">
+                        在量子酒店中安排电子入住！通过拖拽电子学习原子构造原理、电子填充顺序和洪特规则，掌握原子结构的关键知识。
+                    </p>
+                    <div class="game-tags">
+                        <span class="tag">原子结构</span>
+                        <span class="tag">构造原理</span>
+                        <span class="tag">量子力学</span>
+                        <span class="tag">酒店模拟</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="add-game">
+            <h3 style="text-align: center; color: #ffd700; margin: 40px 0 20px;">更多游戏正在开发中...</h3>
+            <p style="text-align: center; color: #bbbbff; max-width: 600px; margin: 0 auto;">
+                计划中的游戏：化学方程式配平、分子模型搭建、元素周期表探险、化学反应模拟等。
+                欢迎提出你的创意！
+            </p>
+        </div>
+        
+        <footer>
+            <p>© 2024 WONG的化学游戏中心 | 通过游戏让化学学习更有趣！</p>
+            <p style="margin-top: 10px; font-size: 0.9rem;">
+                所有游戏均基于HTML5/CSS3/JavaScript开发，无需安装插件
+            </p>
+        </footer>
+    </div>
+    
+    <script>
+        // 添加一些交互效果
+        document.addEventListener('DOMContentLoaded', function() {
+            // 卡片进入动画
+            const cards = document.querySelectorAll('.game-card');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(30px)';
+                
+                setTimeout(() => {
+                    card.style.transition = 'all 0.5s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 200);
+            });
+            
+            // 添加点击统计
+            document.querySelectorAll('.play-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // 这里可以添加游戏启动统计
+                    console.log('游戏启动');
+                });
+            });
+        });
+    </script>
+</body>
+</html>

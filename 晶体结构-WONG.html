@@ -1,0 +1,1364 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>晶体结构可视化 | 星空实验室</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: #000;
+            color: #fff;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        #stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 20, 40, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            z-index: 100;
+            border-bottom: 1px solid rgba(100, 150, 255, 0.3);
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            background: linear-gradient(45deg, #4CAF50, #2196F3, #FF5722, #9C27B0);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-align: center;
+            text-shadow: 0 0 20px rgba(76, 175, 80, 0.3);
+        }
+
+        .main-container {
+            display: flex;
+            height: calc(100vh - 80px);
+            margin-top: 80px;
+            padding: 1rem;
+            gap: 1rem;
+        }
+
+        .menu-bar {
+            position: fixed;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            z-index: 101;
+            background: rgba(0, 20, 40, 0.7);
+            padding: 1rem;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(100, 150, 255, 0.2);
+        }
+
+        .menu-btn {
+            width: 50px;
+            height: 50px;
+            border: none;
+            border-radius: 10px;
+            background: rgba(100, 150, 255, 0.1);
+            color: #64C1FF;
+            font-size: 1.3rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .menu-btn:hover {
+            background: rgba(100, 150, 255, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(100, 150, 255, 0.2);
+        }
+
+        .menu-btn.active {
+            background: rgba(100, 150, 255, 0.3);
+            color: #fff;
+            box-shadow: 0 0 15px rgba(100, 150, 255, 0.5);
+        }
+
+        .panel {
+            position: fixed;
+            left: 80px;
+            top: 50%;
+            transform: translateY(-50%) translateX(-20px);
+            width: 300px;
+            background: rgba(0, 20, 40, 0.85);
+            backdrop-filter: blur(15px);
+            border-radius: 15px;
+            padding: 1.5rem;
+            z-index: 100;
+            border: 1px solid rgba(100, 150, 255, 0.2);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .panel.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(-50%) translateX(0);
+        }
+
+        .panel h2 {
+            color: #64C1FF;
+            margin-bottom: 1.5rem;
+            font-size: 1.3rem;
+            border-bottom: 2px solid rgba(100, 150, 255, 0.3);
+            padding-bottom: 0.5rem;
+        }
+
+        .visualization-container {
+            flex: 1;
+            margin-left: 100px;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 0 50px rgba(100, 150, 255, 0.1);
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        #crystal-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .instructions {
+            position: fixed;
+            bottom: 1.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 20, 40, 0.8);
+            padding: 0.8rem 1.5rem;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(100, 150, 255, 0.3);
+            text-align: center;
+            z-index: 102;
+        }
+
+        .instructions span {
+            color: #64C1FF;
+            font-weight: 600;
+        }
+
+        /* 结构选择面板 */
+        .crystal-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.8rem;
+        }
+
+        .crystal-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(100, 150, 255, 0.1);
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .crystal-card:hover {
+            background: rgba(100, 150, 255, 0.1);
+            transform: translateY(-3px);
+            border-color: rgba(100, 150, 255, 0.3);
+        }
+
+        .crystal-card.active {
+            background: rgba(100, 150, 255, 0.15);
+            border-color: #64C1FF;
+            box-shadow: 0 0 20px rgba(100, 150, 255, 0.3);
+        }
+
+        .crystal-icon {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .crystal-name {
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        /* 显示控制面板 */
+        .control-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .control-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            color: #ccc;
+        }
+
+        .control-value {
+            color: #64C1FF;
+            font-weight: 600;
+        }
+
+        .slider {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #64C1FF;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(100, 150, 255, 0.5);
+            transition: all 0.2s;
+        }
+
+        .slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: 0 0 15px rgba(100, 150, 255, 0.8);
+        }
+
+        .toggle-group {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.8rem;
+            padding: 0.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.2);
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: #64C1FF;
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+
+        /* 视图模式面板 */
+        .view-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .view-btn {
+            flex: 1;
+            padding: 0.6rem;
+            border: 1px solid rgba(100, 150, 255, 0.2);
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            color: #ccc;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        .view-btn:hover {
+            border-color: rgba(100, 150, 255, 0.4);
+            color: #fff;
+        }
+
+        .view-btn.active {
+            background: rgba(100, 150, 255, 0.15);
+            border-color: #64C1FF;
+            color: #fff;
+        }
+
+        /* 动画控制面板 */
+        .button-group {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .control-btn {
+            flex: 1;
+            padding: 0.8rem;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(45deg, rgba(100, 150, 255, 0.1), rgba(33, 150, 243, 0.1));
+            color: #64C1FF;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .control-btn:hover {
+            background: linear-gradient(45deg, rgba(100, 150, 255, 0.2), rgba(33, 150, 243, 0.2));
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(100, 150, 255, 0.3);
+        }
+
+        /* 结构信息浮动面板 */
+        .info-floating {
+            position: fixed;
+            right: 1.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 250px;
+            background: rgba(0, 20, 40, 0.85);
+            backdrop-filter: blur(15px);
+            border-radius: 15px;
+            padding: 1.5rem;
+            border: 1px solid rgba(100, 150, 255, 0.2);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            z-index: 99;
+        }
+
+        .info-item {
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .info-label {
+            font-size: 0.9rem;
+            color: #aaa;
+            margin-bottom: 0.3rem;
+        }
+
+        .info-value {
+            font-size: 1.1rem;
+            color: #64C1FF;
+            font-weight: 600;
+        }
+
+        .description {
+            font-size: 0.85rem;
+            line-height: 1.5;
+            color: #ccc;
+            margin-top: 1rem;
+            font-style: italic;
+        }
+
+        /* 视图控制按钮 */
+        .view-controls {
+            position: fixed;
+            bottom: 5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 0.5rem;
+            z-index: 101;
+        }
+
+        .view-direction-btn {
+            background: rgba(0, 20, 40, 0.7);
+            border: 1px solid rgba(100, 150, 255, 0.3);
+            color: #64C1FF;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .view-direction-btn:hover {
+            background: rgba(100, 150, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .menu-bar {
+                left: 0.5rem;
+            }
+            
+            .panel {
+                width: 280px;
+                left: 70px;
+            }
+            
+            .visualization-container {
+                margin-left: 80px;
+            }
+            
+            .info-floating {
+                display: none;
+            }
+            
+            .instructions {
+                width: 90%;
+                font-size: 0.8rem;
+            }
+            
+            .view-controls {
+                bottom: 4rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 星空背景 -->
+    <canvas id="stars"></canvas>
+    
+    <div class="header">
+        <h1>🌌 晶体结构星空实验室</h1>
+    </div>
+    
+    <div class="main-container">
+        <!-- 左侧菜单栏 -->
+        <div class="menu-bar">
+            <button class="menu-btn active" data-panel="structure">⚛️</button>
+            <button class="menu-btn" data-panel="display">👁️</button>
+            <button class="menu-btn" data-panel="view">🔭</button>
+            <button class="menu-btn" data-panel="animation">🌀</button>
+        </div>
+        
+        <!-- 结构选择面板 -->
+        <div class="panel active" id="structure-panel">
+            <h2>选择晶体结构</h2>
+            <div class="crystal-grid">
+                <div class="crystal-card active" data-crystal="sc">
+                    <div class="crystal-icon">⬜</div>
+                    <div class="crystal-name">简单立方</div>
+                </div>
+                <div class="crystal-card" data-crystal="bcc">
+                    <div class="crystal-icon">🔘</div>
+                    <div class="crystal-name">体心立方</div>
+                </div>
+                <div class="crystal-card" data-crystal="fcc">
+                    <div class="crystal-icon">💠</div>
+                    <div class="crystal-name">面心立方</div>
+                </div>
+                <div class="crystal-card" data-crystal="diamond">
+                    <div class="crystal-icon">💎</div>
+                    <div class="crystal-name">金刚石</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 显示控制面板 -->
+        <div class="panel" id="display-panel">
+            <h2>显示控制</h2>
+            <div class="control-group">
+                <div class="control-label">
+                    <span>原子大小</span>
+                    <span class="control-value" id="atom-size-value">0.30</span>
+                </div>
+                <input type="range" class="slider" id="atom-size" min="0.1" max="0.5" step="0.01" value="0.3">
+            </div>
+            
+            <div class="control-group">
+                <div class="control-label">
+                    <span>键半径</span>
+                    <span class="control-value" id="bond-radius-value">0.05</span>
+                </div>
+                <input type="range" class="slider" id="bond-radius" min="0.01" max="0.15" step="0.01" value="0.05">
+            </div>
+            
+            <div class="control-group">
+                <div class="control-label">
+                    <span>框架粗细</span>
+                    <span class="control-value" id="lattice-thickness-value">2</span>
+                </div>
+                <input type="range" class="slider" id="lattice-thickness" min="1" max="5" step="0.5" value="2">
+            </div>
+            
+            <div class="toggle-group">
+                <span>晶胞框架</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="show-lattice" checked>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            
+            <div class="toggle-group">
+                <span>化学键</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="show-bonds" checked>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+        
+        <!-- 视图模式面板 -->
+        <div class="panel" id="view-panel">
+            <h2>视图模式</h2>
+            <div class="view-buttons">
+                <button class="view-btn active" data-view="single">单晶胞</button>
+                <button class="view-btn" data-view="multi">多晶胞</button>
+            </div>
+            
+            <div class="control-group">
+                <div class="control-label">
+                    <span>扩展单元</span>
+                    <span class="control-value" id="cell-count-value">2×2×2</span>
+                </div>
+                <input type="range" class="slider" id="cell-count" min="1" max="3" step="1" value="2">
+            </div>
+        </div>
+        
+        <!-- 动画控制面板 -->
+        <div class="panel" id="animation-panel">
+            <h2>动画控制</h2>
+            <div class="toggle-group">
+                <span>自动旋转</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="auto-rotate">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            
+            <div class="control-group">
+                <div class="control-label">
+                    <span>旋转速度</span>
+                    <span class="control-value" id="rotation-speed-value">1.0</span>
+                </div>
+                <input type="range" class="slider" id="rotation-speed" min="0" max="2" step="0.1" value="1.0">
+            </div>
+            
+            <div class="button-group">
+                <button class="control-btn" id="reset-view">重置视角</button>
+                <button class="control-btn" id="reset-settings">重置设置</button>
+            </div>
+        </div>
+        
+        <!-- 主视觉区 -->
+        <div class="visualization-container">
+            <canvas id="crystal-canvas"></canvas>
+        </div>
+        
+        <!-- 结构信息面板 -->
+        <div class="info-floating">
+            <h2>结构信息</h2>
+            <div class="info-item">
+                <div class="info-label">结构类型</div>
+                <div class="info-value" id="structure-name">简单立方</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">配位数</div>
+                <div class="info-value" id="coordination">6</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">堆积密度</div>
+                <div class="info-value" id="packing-fraction">52%</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">晶格类型</div>
+                <div class="info-value" id="lattice-type">立方晶系</div>
+            </div>
+            <p class="description" id="structure-description">
+                简单立方是最基本的晶体结构，原子只分布在立方体的八个角点上...
+            </p>
+        </div>
+    </div>
+    
+    <!-- 视图控制按钮 -->
+    <div class="view-controls">
+        <button class="view-direction-btn" id="front-view">前视图</button>
+        <button class="view-direction-btn" id="side-view">侧视图</button>
+        <button class="view-direction-btn" id="top-view">俯视图</button>
+        <button class="view-direction-btn" id="isometric-view">等轴视图</button>
+    </div>
+    
+    <div class="instructions">
+        <span>操作指南：</span> 左键拖拽旋转 · 滚轮缩放 · 右键拖拽平移
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.min.js"></script>
+    <script>
+        // ========== 星空背景 ==========
+        function createStars() {
+            const canvas = document.getElementById('stars');
+            const ctx = canvas.getContext('2d');
+            
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            
+            const stars = [];
+            const starCount = 500;
+            
+            // 创建星星
+            for (let i = 0; i < starCount; i++) {
+                stars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    radius: Math.random() * 1.5,
+                    speed: Math.random() * 0.5 + 0.2,
+                    opacity: Math.random() * 0.8 + 0.2
+                });
+            }
+            
+            function animateStars() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // 绘制星空背景
+                const gradient = ctx.createRadialGradient(
+                    canvas.width / 2, canvas.height / 2, 0,
+                    canvas.width / 2, canvas.height / 2, Math.max(canvas.width, canvas.height) / 2
+                );
+                gradient.addColorStop(0, 'rgba(0, 10, 30, 0.3)');
+                gradient.addColorStop(1, 'rgba(0, 0, 10, 0.9)');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // 绘制星星
+                stars.forEach(star => {
+                    ctx.beginPath();
+                    ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(255, 255, 255, ${star.opacity})`;
+                    ctx.fill();
+                    
+                    // 星星移动
+                    star.y += star.speed;
+                    if (star.y > canvas.height) {
+                        star.y = 0;
+                        star.x = Math.random() * canvas.width;
+                    }
+                });
+                
+                requestAnimationFrame(animateStars);
+            }
+            
+            animateStars();
+        }
+
+        // ========== 晶体结构数据 ==========
+        const CRYSTAL_STRUCTURES = {
+            sc: {
+                name: "简单立方",
+                coordination: 6,
+                packingFraction: 0.52,
+                latticeType: "立方晶系",
+                // 原子位置：立方体角点，以原点为中心
+                atomPositions: [
+                    [-0.5, -0.5, -0.5], [0.5, -0.5, -0.5],
+                    [-0.5, 0.5, -0.5], [0.5, 0.5, -0.5],
+                    [-0.5, -0.5, 0.5], [0.5, -0.5, 0.5],
+                    [-0.5, 0.5, 0.5], [0.5, 0.5, 0.5]
+                ],
+                bonds: [
+                    // 立方体边，确保完美的对称性
+                    [0,1], [0,2], [0,4],
+                    [1,3], [1,5],
+                    [2,3], [2,6],
+                    [3,7],
+                    [4,5], [4,6],
+                    [5,7],
+                    [6,7]
+                ],
+                color: 0x4CAF50, // 绿色
+                description: "简单立方是最基本的晶体结构，原子只分布在立方体的八个角点上，每个原子被6个最近邻原子包围。配位数为6。"
+            },
+            bcc: {
+                name: "体心立方",
+                coordination: 8,
+                packingFraction: 0.68,
+                latticeType: "立方晶系",
+                // 原子位置：立方体角点 + 体心
+                atomPositions: [
+                    // 角原子
+                    [-0.5, -0.5, -0.5], [0.5, -0.5, -0.5],
+                    [-0.5, 0.5, -0.5], [0.5, 0.5, -0.5],
+                    [-0.5, -0.5, 0.5], [0.5, -0.5, 0.5],
+                    [-0.5, 0.5, 0.5], [0.5, 0.5, 0.5],
+                    // 体心原子
+                    [0, 0, 0]
+                ],
+                bonds: [
+                    // 体心与所有角原子连接
+                    [8,0], [8,1], [8,2], [8,3], [8,4], [8,5], [8,6], [8,7],
+                    // 立方体边
+                    [0,1], [0,2], [0,4],
+                    [1,3], [1,5],
+                    [2,3], [2,6],
+                    [3,7],
+                    [4,5], [4,6],
+                    [5,7],
+                    [6,7]
+                ],
+                color: 0x2196F3, // 蓝色
+                description: "体心立方结构在立方体角点和体心位置都有原子，每个原子被8个最近邻原子包围。常见于碱金属如钠、钾等。"
+            },
+            fcc: {
+                name: "面心立方",
+                coordination: 12,
+                packingFraction: 0.74,
+                latticeType: "立方晶系",
+                // 原子位置：立方体角点 + 面心
+                atomPositions: [
+                    // 角原子
+                    [-0.5, -0.5, -0.5], [0.5, -0.5, -0.5],
+                    [-0.5, 0.5, -0.5], [0.5, 0.5, -0.5],
+                    [-0.5, -0.5, 0.5], [0.5, -0.5, 0.5],
+                    [-0.5, 0.5, 0.5], [0.5, 0.5, 0.5],
+                    // 面心原子
+                    [0, 0, -0.5],    // Z=-0.5面中心
+                    [0, -0.5, 0],     // Y=-0.5面中心
+                    [-0.5, 0, 0],     // X=-0.5面中心
+                    [0, 0.5, 0],      // Y=0.5面中心
+                    [0.5, 0, 0],      // X=0.5面中心
+                    [0, 0, 0.5]       // Z=0.5面中心
+                ],
+                bonds: [
+                    // 每个面心原子只与所在面的四个角原子连接
+                    // Z=-0.5面面心(8)与四个角原子连接
+                    [8,0], [8,1], [8,2], [8,3],
+                    // Z=0.5面面心(13)与四个角原子连接
+                    [13,4], [13,5], [13,6], [13,7],
+                    // Y=-0.5面面心(9)与四个角原子连接
+                    [9,0], [9,1], [9,4], [9,5],
+                    // Y=0.5面面心(11)与四个角原子连接
+                    [11,2], [11,3], [11,6], [11,7],
+                    // X=-0.5面面心(10)与四个角原子连接
+                    [10,0], [10,2], [10,4], [10,6],
+                    // X=0.5面面心(12)与四个角原子连接
+                    [12,1], [12,3], [12,5], [12,7]
+                ],
+                color: 0xFF5722, // 橙色
+                description: "面心立方结构是最常见的金属晶体结构之一，原子分布在立方体的角点和面心上，每个原子被12个最近邻原子包围，堆积密度达到74%。"
+            },
+            diamond: {
+                name: "金刚石结构",
+                coordination: 4,
+                packingFraction: 0.34,
+                latticeType: "立方晶系",
+                // 金刚石结构：8个顶点 + 6个面心 + 4个体内原子
+                // 体内原子位置：两条体对角线的1/4和3/4处
+                atomPositions: [
+                    // 顶点原子 (0-7)
+                    [-0.5, -0.5, -0.5], [0.5, -0.5, -0.5],
+                    [-0.5, 0.5, -0.5], [0.5, 0.5, -0.5],
+                    [-0.5, -0.5, 0.5], [0.5, -0.5, 0.5],
+                    [-0.5, 0.5, 0.5], [0.5, 0.5, 0.5],
+                    
+                    // 面心原子 (8-13)
+                    [0, 0, -0.5],    // Z=-0.5面中心
+                    [0, -0.5, 0],     // Y=-0.5面中心
+                    [-0.5, 0, 0],     // X=-0.5面中心
+                    [0, 0.5, 0],      // Y=0.5面中心
+                    [0.5, 0, 0],      // X=0.5面中心
+                    [0, 0, 0.5],      // Z=0.5面中心
+                    
+                    // 体内原子 (14-17)
+                    // 体对角线1: (-0.5,-0.5,-0.5) -> (0.5,0.5,0.5) 的1/4和3/4处
+                    [-0.25, -0.25, -0.25], [0.25, 0.25, 0.25],
+                    // 体对角线2: (0.5,-0.5,-0.5) -> (-0.5,0.5,0.5) 的1/4和3/4处
+                    [0.25, -0.25, -0.25], [-0.25, 0.25, 0.25]
+                ],
+                // 空数组，不显示化学键
+                bonds: [],
+                color: 0x9C27B0, // 紫色
+                description: "金刚石结构由碳原子构成，每个碳原子与四个相邻碳原子形成正四面体结构。这种结构硬度极高，是自然界中最坚硬的物质。原子位于立方体的顶点、面心和两条体对角线的1/4和3/4处。"
+            }
+        };
+
+        // ========== Three.js 场景 ==========
+        let scene, camera, renderer, controls;
+        let currentStructure = 'sc';
+        let atoms = [], bonds = [], lattice = null;
+        let atomSize = 0.3, bondRadius = 0.05, latticeThickness = 2;
+        let showLattice = true, showBonds = true;
+        let autoRotate = false, rotationSpeed = 1.0;
+        let viewMode = 'single', cellCount = 2;
+
+        function initThreeJS() {
+            // 创建场景
+            scene = new THREE.Scene();
+            scene.background = null; // 透明背景，显示星空
+
+            // 创建相机
+            const canvas = document.getElementById('crystal-canvas');
+            const container = document.querySelector('.visualization-container');
+            camera = new THREE.PerspectiveCamera(45, 
+                container.clientWidth / container.clientHeight, 
+                0.1, 1000);
+            camera.position.set(5, 5, 5);
+            camera.lookAt(0, 0, 0);
+
+            // 创建渲染器
+            renderer = new THREE.WebGLRenderer({ 
+                canvas, 
+                antialias: true,
+                alpha: true 
+            });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+            // 添加轨道控制器
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.screenSpacePanning = false;
+            controls.minDistance = 3;
+            controls.maxDistance = 50;
+            controls.maxPolarAngle = Math.PI;
+
+            // 添加光源 - 使用柔和的白光
+            const ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.6);
+            scene.add(ambientLight);
+
+            const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 0.8);
+            directionalLight.position.set(10, 20, 15);
+            directionalLight.castShadow = true;
+            directionalLight.shadow.mapSize.width = 2048;
+            directionalLight.shadow.mapSize.height = 2048;
+            scene.add(directionalLight);
+
+            // 添加补充光源，确保原子在各个角度都可见
+            const backLight = new THREE.DirectionalLight(0xFFFFFF, 0.4);
+            backLight.position.set(-5, -5, -5);
+            scene.add(backLight);
+
+            // 初始化晶体
+            updateCrystal();
+
+            // 窗口大小调整监听
+            window.addEventListener('resize', onWindowResize);
+
+            // 开始动画循环
+            animate();
+        }
+
+        function updateCrystal() {
+            // 清除现有对象
+            atoms.forEach(atom => {
+                if (atom.geometry) atom.geometry.dispose();
+                if (atom.material) atom.material.dispose();
+                scene.remove(atom);
+            });
+            
+            bonds.forEach(bond => {
+                if (bond.geometry) bond.geometry.dispose();
+                if (bond.material) bond.material.dispose();
+                scene.remove(bond);
+            });
+            
+            atoms = [];
+            bonds = [];
+            
+            if (lattice) {
+                // 如果是Group，需要遍历子对象并清理
+                if (lattice.isGroup) {
+                    lattice.children.forEach(child => {
+                        if (child.geometry) child.geometry.dispose();
+                        if (child.material) child.material.dispose();
+                    });
+                } else {
+                    if (lattice.geometry) lattice.geometry.dispose();
+                    if (lattice.material) lattice.material.dispose();
+                }
+                scene.remove(lattice);
+                lattice = null;
+            }
+
+            const structure = CRYSTAL_STRUCTURES[currentStructure];
+            const atomColor = structure.color;
+            
+            // 创建原子材质
+            const atomMaterial = new THREE.MeshLambertMaterial({
+                color: atomColor,
+                emissive: atomColor,
+                emissiveIntensity: 0.1,
+                shininess: 100,
+                specular: 0x111111
+            });
+            
+            // 创建键材质
+            const bondMaterial = new THREE.MeshLambertMaterial({
+                color: atomColor,
+                emissive: atomColor,
+                emissiveIntensity: 0.05
+            });
+            
+            if (viewMode === 'single') {
+                // 单晶胞视图
+                const atomGeometry = new THREE.SphereGeometry(atomSize, 32, 32);
+                
+                structure.atomPositions.forEach((pos) => {
+                    const atom = new THREE.Mesh(atomGeometry, atomMaterial);
+                    atom.position.set(pos[0], pos[1], pos[2]);
+                    atom.castShadow = true;
+                    atom.receiveShadow = true;
+                    scene.add(atom);
+                    atoms.push(atom);
+                });
+
+                // 创建化学键（金刚石结构不显示键）
+                if (showBonds && structure.bonds && structure.bonds.length > 0) {
+                    createBonds(structure, bondMaterial);
+                }
+
+                // 创建晶胞框架
+                if (showLattice) {
+                    createLattice();
+                }
+            } else {
+                // 多晶胞视图
+                const atomGeometry = new THREE.SphereGeometry(atomSize, 24, 24);
+                const offset = (cellCount - 1) / 2;
+                
+                for (let x = 0; x < cellCount; x++) {
+                    for (let y = 0; y < cellCount; y++) {
+                        for (let z = 0; z < cellCount; z++) {
+                            structure.atomPositions.forEach((pos) => {
+                                const atom = new THREE.Mesh(atomGeometry, atomMaterial);
+                                atom.position.set(
+                                    pos[0] + x - offset,
+                                    pos[1] + y - offset,
+                                    pos[2] + z - offset
+                                );
+                                atom.castShadow = true;
+                                scene.add(atom);
+                                atoms.push(atom);
+                            });
+                        }
+                    }
+                }
+
+                // 创建晶胞框架
+                if (showLattice) {
+                    createLattice(cellCount);
+                }
+            }
+
+            // 更新信息面板
+            updateInfoPanel(structure);
+        }
+
+        function createBonds(structure, bondMaterial) {
+            const bondGeometry = new THREE.CylinderGeometry(bondRadius, bondRadius, 1, 8);
+            
+            structure.bonds.forEach(bond => {
+                const [i, j] = bond;
+                const pos1 = structure.atomPositions[i];
+                const pos2 = structure.atomPositions[j];
+                
+                if (!pos1 || !pos2) return;
+                
+                const bondMesh = new THREE.Mesh(bondGeometry, bondMaterial);
+                
+                const start = new THREE.Vector3(pos1[0], pos1[1], pos1[2]);
+                const end = new THREE.Vector3(pos2[0], pos2[1], pos2[2]);
+                
+                const direction = new THREE.Vector3().subVectors(end, start);
+                const length = direction.length();
+                
+                // 只创建合理长度的键（原子间距应该在合理范围内）
+                if (length > 0.1 && length < 1.5) {
+                    bondMesh.scale.set(1, length, 1);
+                    const midPoint = new THREE.Vector3()
+                        .addVectors(start, end)
+                        .multiplyScalar(0.5);
+                    bondMesh.position.copy(midPoint);
+                    bondMesh.lookAt(end);
+                    bondMesh.rotateX(Math.PI / 2);
+                    
+                    bondMesh.castShadow = true;
+                    scene.add(bondMesh);
+                    bonds.push(bondMesh);
+                }
+            });
+        }
+
+        function createLattice(count = 1) {
+            const latticeMaterial = new THREE.LineBasicMaterial({
+                color: 0x64C1FF,
+                transparent: true,
+                opacity: 0.4,
+                linewidth: latticeThickness
+            });
+            
+            const points = [];
+            const half = count / 2;
+            
+            // 创建立方体框架的顶点
+            for (let i = 0; i <= 1; i++) {
+                for (let j = 0; j <= 1; j++) {
+                    for (let k = 0; k <= 1; k++) {
+                        const x = (i * 2 - 1) * half;
+                        const y = (j * 2 - 1) * half;
+                        const z = (k * 2 - 1) * half;
+                        points.push(new THREE.Vector3(x, y, z));
+                    }
+                }
+            }
+            
+            const linePoints = [];
+            
+            // 如果是金刚石结构且单晶胞视图，添加完整的四条体对角线
+            if (currentStructure === 'diamond' && count === 1) {
+                // 立方体边
+                const edges = [
+                    [0,1], [0,2], [0,4], [1,3], [1,5], [2,3],
+                    [2,6], [3,7], [4,5], [4,6], [5,7], [6,7]
+                ];
+                
+                edges.forEach(edge => {
+                    linePoints.push(points[edge[0]], points[edge[1]]);
+                });
+                
+                // 创建Group来包含所有框架元素
+                lattice = new THREE.Group();
+                
+                // 创建立方体边
+                const cubeGeometry = new THREE.BufferGeometry().setFromPoints(linePoints);
+                const cubeLines = new THREE.LineSegments(cubeGeometry, latticeMaterial);
+                lattice.add(cubeLines);
+                
+                // 添加四条体对角线（用虚线表示）
+                const diagonalMaterial = new THREE.LineDashedMaterial({
+                    color: 0x64C1FF,
+                    transparent: true,
+                    opacity: 0.3,
+                    linewidth: latticeThickness,
+                    dashSize: 0.1,
+                    gapSize: 0.05
+                });
+                
+                // 立方体的四条体对角线：
+                // 1. (-0.5,-0.5,-0.5) 到 (0.5,0.5,0.5) 顶点0 ↔ 顶点7
+                const diagonal1 = new THREE.Line(
+                    new THREE.BufferGeometry().setFromPoints([points[0], points[7]]),
+                    diagonalMaterial
+                );
+                diagonal1.computeLineDistances();
+                lattice.add(diagonal1);
+                
+                // 2. (0.5,-0.5,-0.5) 到 (-0.5,0.5,0.5) 顶点1 ↔ 顶点6
+                const diagonal2 = new THREE.Line(
+                    new THREE.BufferGeometry().setFromPoints([points[1], points[6]]),
+                    diagonalMaterial
+                );
+                diagonal2.computeLineDistances();
+                lattice.add(diagonal2);
+                
+                // 3. (-0.5,0.5,-0.5) 到 (0.5,-0.5,0.5) 顶点2 ↔ 顶点5
+                const diagonal3 = new THREE.Line(
+                    new THREE.BufferGeometry().setFromPoints([points[2], points[5]]),
+                    diagonalMaterial
+                );
+                diagonal3.computeLineDistances();
+                lattice.add(diagonal3);
+                
+                // 4. (0.5,0.5,-0.5) 到 (-0.5,-0.5,0.5) 顶点3 ↔ 顶点4
+                const diagonal4 = new THREE.Line(
+                    new THREE.BufferGeometry().setFromPoints([points[3], points[4]]),
+                    diagonalMaterial
+                );
+                diagonal4.computeLineDistances();
+                lattice.add(diagonal4);
+                
+                scene.add(lattice);
+            } else {
+                // 其他结构或金刚石的多晶胞视图，只显示立方体框架
+                const edges = [
+                    [0,1], [0,2], [0,4], [1,3], [1,5], [2,3],
+                    [2,6], [3,7], [4,5], [4,6], [5,7], [6,7]
+                ];
+                
+                edges.forEach(edge => {
+                    linePoints.push(points[edge[0]], points[edge[1]]);
+                });
+                
+                const geometry = new THREE.BufferGeometry().setFromPoints(linePoints);
+                lattice = new THREE.LineSegments(geometry, latticeMaterial);
+                scene.add(lattice);
+            }
+        }
+
+        function updateInfoPanel(structure) {
+            document.getElementById('structure-name').textContent = structure.name;
+            document.getElementById('coordination').textContent = structure.coordination;
+            document.getElementById('packing-fraction').textContent = 
+                Math.round(structure.packingFraction * 100) + '%';
+            document.getElementById('lattice-type').textContent = structure.latticeType;
+            document.getElementById('structure-description').textContent = structure.description;
+        }
+
+        function onWindowResize() {
+            const canvas = document.getElementById('crystal-canvas');
+            const container = canvas.parentElement;
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            if (autoRotate) {
+                scene.rotation.y += 0.002 * rotationSpeed;
+            }
+            
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        // ========== 视图切换功能 ==========
+        function setView(direction) {
+            controls.reset();
+            
+            switch(direction) {
+                case 'front':
+                    // 正视图：沿Z轴负方向看
+                    camera.position.set(0, 0, 5);
+                    camera.lookAt(0, 0, 0);
+                    break;
+                case 'side':
+                    // 侧视图：沿X轴负方向看
+                    camera.position.set(5, 0, 0);
+                    camera.lookAt(0, 0, 0);
+                    break;
+                case 'top':
+                    // 俯视图：沿Y轴正方向看
+                    camera.position.set(0, 5, 0);
+                    camera.lookAt(0, 0, 0);
+                    camera.up.set(0, 0, -1);
+                    break;
+                case 'isometric':
+                    // 等轴视图：经典45度视角
+                    camera.position.set(5, 5, 5);
+                    camera.lookAt(0, 0, 0);
+                    camera.up.set(0, 1, 0);
+                    break;
+            }
+            
+            // 更新控制器
+            controls.update();
+        }
+
+        // ========== 界面交互 ==========
+        function setupUI() {
+            // 菜单按钮切换
+            document.querySelectorAll('.menu-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const panelId = this.dataset.panel;
+                    
+                    // 切换按钮状态
+                    document.querySelectorAll('.menu-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // 切换面板显示
+                    document.querySelectorAll('.panel').forEach(p => {
+                        p.classList.remove('active');
+                    });
+                    document.getElementById(`${panelId}-panel`).classList.add('active');
+                });
+            });
+
+            // 晶体选择
+            document.querySelectorAll('.crystal-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    if (this.classList.contains('active')) return;
+                    
+                    document.querySelectorAll('.crystal-card').forEach(c => c.classList.remove('active'));
+                    this.classList.add('active');
+                    currentStructure = this.dataset.crystal;
+                    updateCrystal();
+                });
+            });
+
+            // 视图模式
+            document.querySelectorAll('.view-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    viewMode = this.dataset.view;
+                    updateCrystal();
+                });
+            });
+
+            // 视图方向按钮
+            document.getElementById('front-view').addEventListener('click', () => setView('front'));
+            document.getElementById('side-view').addEventListener('click', () => setView('side'));
+            document.getElementById('top-view').addEventListener('click', () => setView('top'));
+            document.getElementById('isometric-view').addEventListener('click', () => setView('isometric'));
+
+            // 滑块控制
+            const atomSizeSlider = document.getElementById('atom-size');
+            atomSizeSlider.addEventListener('input', (e) => {
+                atomSize = parseFloat(e.target.value);
+                document.getElementById('atom-size-value').textContent = atomSize.toFixed(2);
+                updateCrystal();
+            });
+
+            const bondRadiusSlider = document.getElementById('bond-radius');
+            bondRadiusSlider.addEventListener('input', (e) => {
+                bondRadius = parseFloat(e.target.value);
+                document.getElementById('bond-radius-value').textContent = bondRadius.toFixed(2);
+                if (showBonds && currentStructure !== 'diamond') updateCrystal();
+            });
+
+            // 晶胞框架粗细调节
+            const latticeThicknessSlider = document.getElementById('lattice-thickness');
+            latticeThicknessSlider.addEventListener('input', (e) => {
+                latticeThickness = parseFloat(e.target.value);
+                document.getElementById('lattice-thickness-value').textContent = latticeThickness.toFixed(1);
+                if (showLattice) {
+                    // 重新创建晶胞框架
+                    if (lattice) {
+                        if (lattice.isGroup) {
+                            lattice.children.forEach(child => {
+                                if (child.geometry) child.geometry.dispose();
+                                if (child.material) child.material.dispose();
+                            });
+                        } else {
+                            if (lattice.geometry) lattice.geometry.dispose();
+                            if (lattice.material) lattice.material.dispose();
+                        }
+                        scene.remove(lattice);
+                        lattice = null;
+                    }
+                    createLattice(viewMode === 'multi' ? cellCount : 1);
+                }
+            });
+
+            const cellCountSlider = document.getElementById('cell-count');
+            cellCountSlider.addEventListener('input', (e) => {
+                cellCount = parseInt(e.target.value);
+                const displayValue = `${cellCount}×${cellCount}×${cellCount}`;
+                document.getElementById('cell-count-value').textContent = displayValue;
+                if (viewMode === 'multi') updateCrystal();
+            });
+
+            const rotationSpeedSlider = document.getElementById('rotation-speed');
+            rotationSpeedSlider.addEventListener('input', (e) => {
+                rotationSpeed = parseFloat(e.target.value);
+                document.getElementById('rotation-speed-value').textContent = rotationSpeed.toFixed(1);
+            });
+
+            // 切换开关
+            document.getElementById('show-lattice').addEventListener('change', (e) => {
+                showLattice = e.target.checked;
+                updateCrystal();
+            });
+
+            document.getElementById('show-bonds').addEventListener('change', (e) => {
+                showBonds = e.target.checked;
+                updateCrystal();
+            });
+
+            document.getElementById('auto-rotate').addEventListener('change', (e) => {
+                autoRotate = e.target.checked;
+            });
+
+            // 控制按钮
+            document.getElementById('reset-view').addEventListener('click', () => {
+                controls.reset();
+                setView('isometric');
+            });
+
+            document.getElementById('reset-settings').addEventListener('click', () => {
+                atomSize = 0.3;
+                bondRadius = 0.05;
+                latticeThickness = 2;
+                cellCount = 2;
+                showLattice = true;
+                showBonds = true;
+                autoRotate = false;
+                rotationSpeed = 1.0;
+                viewMode = 'single';
+                
+                document.getElementById('atom-size').value = atomSize;
+                document.getElementById('bond-radius').value = bondRadius;
+                document.getElementById('lattice-thickness').value = latticeThickness;
+                document.getElementById('cell-count').value = cellCount;
+                document.getElementById('show-lattice').checked = showLattice;
+                document.getElementById('show-bonds').checked = showBonds;
+                document.getElementById('auto-rotate').checked = autoRotate;
+                document.getElementById('rotation-speed').value = rotationSpeed;
+                
+                document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+                document.querySelector('[data-view="single"]').classList.add('active');
+                
+                document.getElementById('atom-size-value').textContent = atomSize.toFixed(2);
+                document.getElementById('bond-radius-value').textContent = bondRadius.toFixed(2);
+                document.getElementById('lattice-thickness-value').textContent = latticeThickness.toFixed(1);
+                document.getElementById('cell-count-value').textContent = '2×2×2';
+                document.getElementById('rotation-speed-value').textContent = rotationSpeed.toFixed(1);
+                
+                updateCrystal();
+                setView('isometric');
+            });
+        }
+
+        // ========== 页面初始化 ==========
+        window.addEventListener('DOMContentLoaded', () => {
+            createStars();
+            initThreeJS();
+            setupUI();
+        });
+    </script>
+</body>
+</html>
