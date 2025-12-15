@@ -151,6 +151,16 @@
             font-size: 0.85rem;
         }
         
+        .tag-vpn {
+            background: rgba(255, 0, 0, 0.2);
+            color: #ff6b6b;
+        }
+        
+        .tag-domestic {
+            background: rgba(0, 255, 0, 0.2);
+            color: #4CAF50;
+        }
+        
         footer {
             text-align: center;
             padding: 30px;
@@ -208,11 +218,11 @@
         
         <div class="stats-bar">
             <div class="stat">
-                <div class="stat-number">3</div>
+                <div class="stat-number">5</div>
                 <div class="stat-label">精品游戏</div>
             </div>
             <div class="stat">
-                <div class="stat-number">100+</div>
+                <div class="stat-number">150+</div>
                 <div class="stat-label">化学知识点</div>
             </div>
             <div class="stat">
@@ -290,6 +300,54 @@
                     </div>
                 </div>
             </div>
+            
+            <!-- 新游戏1：晶体空隙VPN版 -->
+            <div class="game-card">
+                <div class="game-preview" style="background: linear-gradient(135deg, #FF9800, #E91E63);">
+                    <div class="preview-overlay">
+                        <button class="play-btn" onclick="window.open('https://venerable-piroshki-eb5d8f.netlify.app/', '_blank')">开始游戏</button>
+                    </div>
+                </div>
+                <div class="game-info">
+                    <h2 class="game-title">
+                        <span class="game-icon">🧊</span> 晶体空隙探索
+                    </h2>
+                    <p class="game-description">
+                        深入探索面心立方和体心立方晶胞中的四面体空隙和八面体空隙！通过交互式3D模型，直观理解晶体空隙的位置、数量和几何特征。
+                    </p>
+                    <div class="game-tags">
+                        <span class="tag">晶体结构</span>
+                        <span class="tag">空隙分析</span>
+                        <span class="tag">3D可视化</span>
+                        <span class="tag">晶胞几何</span>
+                        <span class="tag tag-vpn">需要VPN</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 新游戏2：晶体空隙国内版 -->
+            <div class="game-card">
+                <div class="game-preview" style="background: linear-gradient(135deg, #00BCD4, #8BC34A);">
+                    <div class="preview-overlay">
+                        <button class="play-btn" onclick="window.open('https://storied-tapioca-cddeaa.netlify.app/', '_blank')">开始游戏</button>
+                    </div>
+                </div>
+                <div class="game-info">
+                    <h2 class="game-title">
+                        <span class="game-icon">🔍</span> 晶体空隙实验室
+                    </h2>
+                    <p class="game-description">
+                        国内可直接访问的晶体空隙探索工具！研究面心立方和体心立方晶胞中的空隙分布，学习空隙的位置、大小和对材料性能的影响。
+                    </p>
+                    <div class="game-tags">
+                        <span class="tag">晶体学</span>
+                        <span class="tag">材料科学</span>
+                        <span class="tag">空隙分析</span>
+                        <span class="tag">交互式学习</span>
+                        <span class="tag tag-domestic">国内访问</span>
+                    </div>
+                </div>
+            </div>
         </div>
         
         <div class="add-game">
@@ -304,6 +362,9 @@
             <p>© 2024 WONG的化学游戏中心 | 通过游戏让化学学习更有趣！</p>
             <p style="margin-top: 10px; font-size: 0.9rem;">
                 所有游戏均基于HTML5/CSS3/JavaScript开发，无需安装插件
+            </p>
+            <p style="margin-top: 10px; font-size: 0.8rem; color: #6666cc;">
+                注：部分游戏可能需要VPN访问，请根据提示选择合适版本
             </p>
         </footer>
     </div>
