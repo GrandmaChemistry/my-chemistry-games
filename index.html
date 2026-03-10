@@ -106,11 +106,14 @@
             font-size: 1.1rem;
             cursor: pointer;
             transition: all 0.3s ease;
+            border: 2px solid transparent;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
         }
         
         .play-btn:hover {
             transform: scale(1.1);
-            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
+            background: linear-gradient(45deg, #ffd700, #ff8c00);
         }
         
         .game-info {
@@ -149,16 +152,27 @@
             padding: 4px 12px;
             border-radius: 15px;
             font-size: 0.85rem;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            backdrop-filter: blur(4px);
         }
         
         .tag-vpn {
-            background: rgba(255, 0, 0, 0.2);
-            color: #ff6b6b;
+            background: rgba(255, 80, 80, 0.25);
+            color: #ffb0b0;
+            border-color: #ff6b6b;
         }
         
         .tag-domestic {
-            background: rgba(0, 255, 0, 0.2);
-            color: #4CAF50;
+            background: rgba(76, 175, 80, 0.25);
+            color: #b0ffb0;
+            border-color: #4CAF50;
+        }
+        
+        /* 新增高温高压特殊标签样式 */
+        .tag-hthp {
+            background: rgba(255, 140, 0, 0.3);
+            color: #ffcc80;
+            border-color: #ff9800;
         }
         
         footer {
@@ -213,16 +227,16 @@
     <div class="container">
         <header>
             <h1>🔬 化学游戏中心</h1>
-            <p class="subtitle">通过有趣的游戏学习化学知识，让化学学习变得生动有趣！包含离子反应、晶体结构和原子构造原理等核心概念。</p>
+            <p class="subtitle">通过有趣的游戏学习化学知识，让化学学习变得生动有趣！包含离子反应、晶体结构和原子构造原理、碳同素异形体转化等核心概念。</p>
         </header>
         
         <div class="stats-bar">
             <div class="stat">
-                <div class="stat-number">6</div>
+                <div class="stat-number">7</div>
                 <div class="stat-label">精品游戏</div>
             </div>
             <div class="stat">
-                <div class="stat-number">200+</div>
+                <div class="stat-number">250+</div>
                 <div class="stat-label">化学知识点</div>
             </div>
             <div class="stat">
@@ -301,12 +315,42 @@
                 </div>
             </div>
             
+            <!-- 新增游戏：石墨高温高压转金刚石（核心新增内容） -->
+            <div class="game-card">
+                <div class="game-preview" style="background: linear-gradient(145deg, #2c3e50, #1e2b38); position: relative; overflow: hidden;">
+                    <!-- 模拟石墨与金刚石的抽象背景：石墨灰层与金色高压 -->
+                    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at 30% 50%, #5d6d7e, #1a2632);"></div>
+                    <div style="position: absolute; bottom: 0; left: 0; width: 100%; height: 40%; background: linear-gradient(0deg, #b8860b 0%, transparent 80%); opacity: 0.6;"></div>
+                    <div style="position: absolute; top: 20px; left: 20px; color: #ffd966; font-size: 2.2rem; filter: drop-shadow(0 0 5px #ff8c00);">⛰️🔥</div>
+                    <div style="position: absolute; bottom: 20px; right: 20px; color: #b0c4de; font-size: 2rem; filter: drop-shadow(0 0 8px #4ac7ff);">💎</div>
+                    <div class="preview-overlay">
+                        <button class="play-btn" onclick="window.open('https://graphite-sp2-to-sp3.netlify.app/', '_blank')">开始模拟</button>
+                    </div>
+                </div>
+                <div class="game-info">
+                    <h2 class="game-title">
+                        <span class="game-icon">⛰️</span> 石墨→金刚石：高温高压转化
+                    </h2>
+                    <p class="game-description">
+                        模拟石墨在极端高温高压条件下转化为金刚石的过程。观察碳原子层如何重新键合，从sp²杂化转变为sp³杂化，理解地质深部的金刚石形成机制。
+                    </p>
+                    <div class="game-tags">
+                        <span class="tag">碳同素异形体</span>
+                        <span class="tag">sp²→sp³</span>
+                        <span class="tag tag-hthp">🔥 高温高压</span>
+                        <span class="tag">相变模拟</span>
+                        <span class="tag">地质化学</span>
+                        <span class="tag tag-vpn">可能需要VPN</span>
+                    </div>
+                </div>
+            </div>
+            
             <!-- 新游戏1：晶体空隙VPN版 -->
             <div class="game-card">
                 <div class="game-preview" style="background: linear-gradient(135deg, #FF9800, #E91E63);">
                     <div class="preview-overlay">
                         <button class="play-btn" onclick="window.open('https://crystavoid.vercel.app/', '_blank')">开始游戏</button>
-                        //  https://venerable-piroshki-eb5d8f.netlify.app/   
+                        <!-- 注释保留：备用链接  https://venerable-piroshki-eb5d8f.netlify.app/   -->
                     </div>
                 </div>
                 <div class="game-info">
@@ -331,7 +375,7 @@
                 <div class="game-preview" style="background: linear-gradient(135deg, #00BCD4, #8BC34A);">
                     <div class="preview-overlay">
                         <button class="play-btn" onclick="window.open('https://storied-tapioca-cddeaa.netlify.app/', '_blank')">开始游戏</button>
-                        //https://storied-tapioca-cddeaa.netlify.app/    https://usautodeploy-crystalvoidexplorer30-hxntv4.deployai365.com/
+                        <!-- 备用注释 https://usautodeploy-crystalvoidexplorer30-hxntv4.deployai365.com/ -->
                     </div>
                 </div>
                 <div class="game-info">
@@ -356,7 +400,7 @@
                 <div class="game-preview" style="background: linear-gradient(135deg, #FF3D00, #2979FF);">
                     <div class="preview-overlay">
                         <button class="play-btn" onclick="window.open('https://ironnebula.netlify.app/', '_blank')">开始探索</button>
-                        // https://ironnebula.netlify.app/  https://usautodeploy-ironnebula-ng6541.deployai365.com/
+                        <!-- 备用注释 https://usautodeploy-ironnebula-ng6541.deployai365.com/ -->
                     </div>
                 </div>
                 <div class="game-info">
@@ -380,7 +424,7 @@
         <div class="add-game">
             <h3 style="text-align: center; color: #ffd700; margin: 40px 0 20px;">更多游戏正在开发中...</h3>
             <p style="text-align: center; color: #bbbbff; max-width: 600px; margin: 0 auto;">
-                计划中的游戏：化学方程式配平、分子模型搭建、元素周期表探险、化学反应模拟等。
+                计划中的游戏：化学方程式配平、分子模型搭建、元素周期表探险、化学反应模拟、高压相变模拟等。
                 欢迎提出你的创意！
             </p>
         </div>
@@ -391,7 +435,7 @@
                 所有游戏均基于HTML5/CSS3/JavaScript开发，无需安装插件
             </p>
             <p style="margin-top: 10px; font-size: 0.8rem; color: #6666cc;">
-                注：部分游戏可能需要VPN访问，请根据提示选择合适版本
+                注：部分游戏可能需要VPN访问，请根据提示选择合适版本；石墨转化模拟展示了碳的奇妙转变。
             </p>
         </footer>
     </div>
@@ -416,7 +460,7 @@
             document.querySelectorAll('.play-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
                     // 这里可以添加游戏启动统计
-                    console.log('游戏启动');
+                    console.log('游戏启动: ' + this.innerText);
                 });
             });
         });
