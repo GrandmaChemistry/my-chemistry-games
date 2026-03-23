@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>化学游戏中心 | WONG</title>
+    <title>化学游戏中心 | WONG | 统一卡片布局</title>
     <style>
         * {
             margin: 0;
@@ -47,11 +47,13 @@
             line-height: 1.6;
         }
         
+        /* 核心修正：网格容器使用等高对齐，所有卡片高度一致 */
         .games-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
             gap: 30px;
             margin: 40px 0;
+            align-items: stretch;  /* 确保每个网格项高度拉伸一致 */
         }
         
         .game-card {
@@ -62,9 +64,10 @@
             transition: all 0.3s ease;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
             border: 1px solid rgba(255, 255, 255, 0.1);
-    height: 520px;
-    display: flex;
-    flex-direction: column;
+            /* 移除固定高度，让内容自动撑开但通过flex列布局保持内部一致性 */
+            display: flex;
+            flex-direction: column;
+            height: 100%;          /* 填充网格项高度，保证同一行等高 */
         }
         
         .game-card:hover {
@@ -74,11 +77,12 @@
         }
         
         .game-preview {
-            height: 200px;
+            height: 200px;          /* 固定预览区高度，保证所有卡片上部一致 */
             background-size: cover;
             background-position: center;
             position: relative;
             overflow: hidden;
+            flex-shrink: 0;        /* 防止被压缩 */
         }
         
         .preview-overlay {
@@ -120,37 +124,42 @@
         }
         
         .game-info {
-            padding: 25px;
-                flex: 1;
-    display: flex;
-    flex-direction: column;
+            padding: 20px 25px 25px 25px;
+            flex: 1;               /* 关键: 让信息区域自动伸展，填充剩余高度 */
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between; /* 保证描述和标签组上下分布，底部对齐 */
         }
         
         .game-title {
-            font-size: 1.8rem;
+            font-size: 1.6rem;      /* 略微调整保证统一视觉，但高度由内容决定 */
             color: #ffd700;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
             display: flex;
             align-items: center;
             gap: 10px;
+            line-height: 1.3;
         }
         
         .game-icon {
             font-size: 1.5rem;
+            flex-shrink: 0;
         }
         
         .game-description {
             color: #ccccff;
-            line-height: 1.6;
-            margin-bottom: 15px;
+            line-height: 1.5;
+            margin-bottom: 18px;
+            /* 让描述文字占据弹性空间，但底部标签组自然下移 */
+            flex: 1;
         }
         
         .game-tags {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
-           # margin-top: 15px;
-    margin-top: auto;
+            margin-top: 12px;
+            /* 不设置margin-top:auto，因为父级flex justify-content:space-between会处理，但需确保描述区flex:1让标签沉底 */
         }
         
         .tag {
@@ -158,9 +167,10 @@
             color: #ffd700;
             padding: 4px 12px;
             border-radius: 15px;
-            font-size: 0.85rem;
+            font-size: 0.75rem;
             border: 1px solid rgba(255, 215, 0, 0.3);
             backdrop-filter: blur(4px);
+            white-space: nowrap;
         }
         
         .tag-vpn {
@@ -175,7 +185,7 @@
             border-color: #4CAF50;
         }
         
-        /* 新增高温高压特殊标签样式 */
+        /* 高温高压特殊标签样式 */
         .tag-hthp {
             background: rgba(255, 140, 0, 0.3);
             color: #ffcc80;
@@ -214,6 +224,10 @@
             color: #bbbbff;
         }
         
+        .add-game {
+            text-align: center;
+        }
+        
         @media (max-width: 768px) {
             .games-grid {
                 grid-template-columns: 1fr;
@@ -226,6 +240,15 @@
             .stats-bar {
                 flex-direction: column;
                 gap: 20px;
+            }
+            
+            .game-title {
+                font-size: 1.4rem;
+            }
+            
+            .tag {
+                font-size: 0.7rem;
+                white-space: normal;
             }
         }
     </style>
@@ -322,10 +345,9 @@
                 </div>
             </div>
             
-            <!-- 新增游戏：石墨高温高压转金刚石（核心新增内容） -->
+            <!-- 石墨高温高压转金刚石 -->
             <div class="game-card">
                 <div class="game-preview" style="background: linear-gradient(145deg, #2c3e50, #1e2b38); position: relative; overflow: hidden;">
-                    <!-- 模拟石墨与金刚石的抽象背景：石墨灰层与金色高压 -->
                     <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at 30% 50%, #5d6d7e, #1a2632);"></div>
                     <div style="position: absolute; bottom: 0; left: 0; width: 100%; height: 40%; background: linear-gradient(0deg, #b8860b 0%, transparent 80%); opacity: 0.6;"></div>
                     <div style="position: absolute; top: 20px; left: 20px; color: #ffd966; font-size: 2.2rem; filter: drop-shadow(0 0 5px #ff8c00);">⛰️🔥</div>
@@ -347,17 +369,15 @@
                         <span class="tag tag-hthp">🔥 高温高压</span>
                         <span class="tag">相变模拟</span>
                         <span class="tag">地质化学</span>
-                      
                     </div>
                 </div>
             </div>
             
-            <!-- 新游戏1：晶体空隙VPN版 -->
+            <!-- 晶体空隙VPN版 -->
             <div class="game-card">
                 <div class="game-preview" style="background: linear-gradient(135deg, #FF9800, #E91E63);">
                     <div class="preview-overlay">
                         <button class="play-btn" onclick="window.open('https://crystavoid.vercel.app/', '_blank')">开始游戏</button>
-                        <!-- 注释保留：备用链接  https://venerable-piroshki-eb5d8f.netlify.app/   -->
                     </div>
                 </div>
                 <div class="game-info">
@@ -377,12 +397,11 @@
                 </div>
             </div>
             
-            <!-- 新游戏2：晶体空隙国内版 -->
+            <!-- 晶体空隙国内版 -->
             <div class="game-card">
                 <div class="game-preview" style="background: linear-gradient(135deg, #00BCD4, #8BC34A);">
                     <div class="preview-overlay">
                         <button class="play-btn" onclick="window.open('https://storied-tapioca-cddeaa.netlify.app/', '_blank')">开始游戏</button>
-                        <!-- 备用注释 https://usautodeploy-crystalvoidexplorer30-hxntv4.deployai365.com/ -->
                     </div>
                 </div>
                 <div class="game-info">
@@ -402,12 +421,11 @@
                 </div>
             </div>
             
-            <!-- 新游戏3：铁原子电子云交互式教学平台 -->
+            <!-- 铁原子电子云交互式教学平台 -->
             <div class="game-card">
                 <div class="game-preview" style="background: linear-gradient(135deg, #FF3D00, #2979FF);">
                     <div class="preview-overlay">
                         <button class="play-btn" onclick="window.open('https://ironnebula.netlify.app/', '_blank')">开始探索</button>
-                        <!-- 备用注释 https://usautodeploy-ironnebula-ng6541.deployai365.com/ -->
                     </div>
                 </div>
                 <div class="game-info">
@@ -426,39 +444,34 @@
                     </div>
                 </div>
             </div>
-        </div>
-
-       
-
-
-
-<!-- 共价键形成过程 -->
-<div class="game-card">
-    <div class="game-preview" style="background: linear-gradient(135deg, #1e2a3a, #00acc1);">
-        <div class="preview-overlay">
-            <button class="play-btn" onclick="window.open('https://covalentlab.netlify.app/', '_blank')">开始探索</button>
-        </div>
-    </div>
-    <div class="game-info">
-        <h2 class="game-title">
-            <span class="game-icon">⚛️</span> 共价键形成实验室
-        </h2>
-        <p class="game-description">
-            通过交互式3D模拟观察共价键的形成过程！见证原子轨道重叠、电子云共享，直观理解σ键和π键的构建机制，探索分子结构的奥秘。
-        </p>
-        <div class="game-tags">
-            <span class="tag">共价键</span>
-            <span class="tag">轨道重叠</span>
-            <span class="tag">σ键/π键</span>
-            <span class="tag">3D可视化</span>
-            <span class="tag">分子结构</span>
-   
-          
-               </div>
+            
+            <!-- 共价键形成过程 -->
+            <div class="game-card">
+                <div class="game-preview" style="background: linear-gradient(135deg, #1e2a3a, #00acc1);">
+                    <div class="preview-overlay">
+                        <button class="play-btn" onclick="window.open('https://covalentlab.netlify.app/', '_blank')">开始探索</button>
+                    </div>
+                </div>
+                <div class="game-info">
+                    <h2 class="game-title">
+                        <span class="game-icon">⚛️</span> 共价键形成实验室
+                    </h2>
+                    <p class="game-description">
+                        通过交互式3D模拟观察共价键的形成过程！见证原子轨道重叠、电子云共享，直观理解σ键和π键的构建机制，探索分子结构的奥秘。
+                    </p>
+                    <div class="game-tags">
+                        <span class="tag">共价键</span>
+                        <span class="tag">轨道重叠</span>
+                        <span class="tag">σ键/π键</span>
+                        <span class="tag">3D可视化</span>
+                        <span class="tag">分子结构</span>
+                    </div>
+                </div>
             </div>
         </div>
-      </div>
-  </div>
+        
+        <!-- 注意: 确保共价键卡片已包含在上述网格中，并且没有遗留独立的game-card导致布局破坏 -->
+        <!-- 以前有一个多余的未闭合结构已修复，所有卡片都在games-grid内部 -->
         
         <div class="add-game">
             <h3 style="text-align: center; color: #ffd700; margin: 40px 0 20px;">更多游戏正在开发中...</h3>
@@ -480,9 +493,8 @@
     </div>
     
     <script>
-        // 添加一些交互效果
         document.addEventListener('DOMContentLoaded', function() {
-            // 卡片进入动画
+            // 卡片入场动画 (保持干净)
             const cards = document.querySelectorAll('.game-card');
             cards.forEach((card, index) => {
                 card.style.opacity = '0';
@@ -492,16 +504,19 @@
                     card.style.transition = 'all 0.5s ease';
                     card.style.opacity = '1';
                     card.style.transform = 'translateY(0)';
-                }, index * 200);
+                }, index * 100);  // 加快动画
             });
             
-            // 添加点击统计
+            // 点击统计
             document.querySelectorAll('.play-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    // 这里可以添加游戏启动统计
-                    console.log('游戏启动: ' + this.innerText);
+                btn.addEventListener('click', function(e) {
+                    console.log('游戏启动: ' + (this.innerText || '未知游戏'));
                 });
             });
+
+            // 强制所有卡片高度一致性: 由于使用grid+flex布局已经保证等高，但若某些卡片描述区行数不同，额外保证
+            // 通过遍历找出最高的.game-info内容区微调? 但flex + grid已经天然等高，因为父级grid行内每项高度由最高项决定
+            // 但为了防止卡片内部padding差异，已在样式统一
         });
     </script>
 </body>
